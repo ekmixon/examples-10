@@ -33,7 +33,7 @@ def main():
     args.url,
     data=json.dumps({"instances": [{"inputs": img_np.tolist()}]}))
   if res.status_code != 200:
-    print('Failed: {}'.format(res.text))
+    print(f'Failed: {res.text}')
     return
 
   output_dict = json.loads(res.text).get('predictions')[0]

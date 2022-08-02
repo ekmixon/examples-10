@@ -90,6 +90,4 @@ def prepare_pipeline_opts(argv=None):
     os.path.abspath(os.path.join(__file__, '../../../../setup.py')),
   ])
 
-  pipeline_opts = PipelineCLIOptions(flags=argv)
-
-  return pipeline_opts
+  return PipelineCLIOptions(flags=argv)

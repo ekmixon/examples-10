@@ -36,8 +36,5 @@ class FunctionEmbeddings(beam.PTransform):
 
     predictions = batch_predict.main
 
-    formatted_predictions = (predictions
-      | "Process Function Embeddings" >> beam.ParDo(func_embeddings.ProcessFunctionEmbedding())
-    )
-
-    return formatted_predictions
+    return predictions | "Process Function Embeddings" >> beam.ParDo(
+        func_embeddings.ProcessFunctionEmbedding())

@@ -23,13 +23,14 @@ def data_loader(hyperparams, local_data_dir):
     return train_dataset, test_dataset, encoder
 
 def define_model(encoder):
-    model = tf.keras.Sequential([
-        tf.keras.layers.Embedding(encoder.vocab_size, 64),
-        tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64)),
-        tf.keras.layers.Dense(64, activation='relu'),
-        tf.keras.layers.Dense(1)
-    ])
-    return model
+    return tf.keras.Sequential(
+        [
+            tf.keras.layers.Embedding(encoder.vocab_size, 64),
+            tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64)),
+            tf.keras.layers.Dense(64, activation='relu'),
+            tf.keras.layers.Dense(1),
+        ]
+    )
 
 class MovieReviewClassification(object):
     def __init__(self, learning_rate=0.01, batch_size=64, epochs=2, local_data_dir='/app/tensorflow_datasets'):

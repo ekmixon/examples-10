@@ -38,8 +38,7 @@ class CodeSearchEngine:
   @staticmethod
   def nmslib_init():
     """Initializes an nmslib index object."""
-    index = nmslib.init(method='hnsw', space='cosinesimil')
-    return index
+    return nmslib.init(method='hnsw', space='cosinesimil')
 
   @staticmethod
   def create_index(data, save_path):

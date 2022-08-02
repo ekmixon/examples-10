@@ -13,9 +13,10 @@ class CustomModelPrediction():
     labeled_predictions = []
 
     for prediction in predictions:
-      labeled_prediction = []
-      for word_prediction in prediction:
-        labeled_prediction.append(self._processor.labels[word_prediction])
+      labeled_prediction = [
+          self._processor.labels[word_prediction]
+          for word_prediction in prediction
+      ]
       labeled_predictions.append(labeled_prediction)
 
     return labeled_predictions
@@ -25,8 +26,7 @@ class CustomModelPrediction():
     predictions = self._model.predict(np.array(transformed_instances))
     predictions = np.argmax(predictions, axis=-1).tolist()
 
-    labels = self.postprocess(predictions)
-    return labels
+    return self.postprocess(predictions)
 
   @classmethod
   def from_path(cls, model_dir):

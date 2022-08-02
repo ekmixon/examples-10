@@ -10,12 +10,12 @@ VERSION = '0.1.dev0'
 # requirements.txt regardless of what file was used as the source.
 # So we follow that convention. If running on some other platform
 # you may need to rename the file
-if not os.path.exists('requirements.txt'):
-  if os.path.exists('requirements.dataflow.txt'):
-    print('Error: requirements.txt does not exist but '
-          'requirements.dataflow.txt does.')
-    print('You probably need to rename requirements.txt to '
-          'requirements.dataflow.txt.')
+if not os.path.exists('requirements.txt') and os.path.exists(
+    'requirements.dataflow.txt'):
+  print('Error: requirements.txt does not exist but '
+        'requirements.dataflow.txt does.')
+  print('You probably need to rename requirements.txt to '
+        'requirements.dataflow.txt.')
 
 with open('requirements.txt', 'r') as f:
   install_requires = f.readlines()
@@ -44,13 +44,13 @@ class CustomCommands(SetupToolsCommand):
 
   @staticmethod
   def run_custom_command(command_list):
-    print('Running command: %s' % command_list)
+    print(f'Running command: {command_list}')
     p = subprocess.Popen(command_list, stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     stdout_data, _ = p.communicate()
-    print('Command output: %s' % stdout_data)
+    print(f'Command output: {stdout_data}')
     if p.returncode != 0:
-      raise RuntimeError('Command %s failed: exit code: %s' % (command_list, p.returncode))
+      raise RuntimeError(f'Command {command_list} failed: exit code: {p.returncode}')
 
   def run(self):
     for command in CUSTOM_COMMANDS:

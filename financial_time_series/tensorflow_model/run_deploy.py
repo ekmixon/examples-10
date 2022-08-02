@@ -47,20 +47,14 @@ def run_deploy(argv=None):
   # get latest active version for TF serving directory
   serving_dir = 'tfserving'
   blobs = storage_helper.list_blobs(args.bucket, prefix=serving_dir)
-  version = set()
-  for blob in blobs:
-    version.add(int(blob.name.split('/')[1]))
-  if version:
-    new_version = max(version)+1
-  else:
-    new_version = 1
-
+  version = {int(blob.name.split('/')[1]) for blob in blobs}
+  new_version = max(version)+1 if version else 1
   # copy the files
   logging.info('deploying model %s as model number %s on TF serving', args.tag, new_version)
   subprocess.call(['gcloud', 'auth', 'activate-service-account',
                    '--key-file', '/secret/gcp-credentials/user-gcp-sa.json'])
-  src_folder = 'gs://{}/models/{}'.format(args.bucket, args.tag)
-  target_folder = 'gs://{}/tfserving/{}'.format(args.bucket, new_version)
+  src_folder = f'gs://{args.bucket}/models/{args.tag}'
+  target_folder = f'gs://{args.bucket}/tfserving/{new_version}'
   subprocess.call(['gsutil', 'cp', '-r', src_folder, target_folder])
 
 

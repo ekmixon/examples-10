@@ -63,12 +63,13 @@ def preprocess_github_dataset(argv=None):
     )
 
   (token_pairs  # pylint: disable=expression-not-assigned
-    | "Format for CSV Write" >> beam.ParDo(dict_to_csv.DictToCSVString(
-      ['docstring_tokens', 'function_tokens']))
-    | "Write CSV" >> beam.io.WriteToText('{}/func-doc-pairs'.format(args.data_dir),
-                                         file_name_suffix='.csv',
-                                         num_shards=100)
-  )
+   | "Format for CSV Write" >> beam.ParDo(
+       dict_to_csv.DictToCSVString(['docstring_tokens', 'function_tokens']))
+   | ("Write CSV" >> beam.io.WriteToText(
+       f'{args.data_dir}/func-doc-pairs',
+       file_name_suffix='.csv',
+       num_shards=100,
+   )))
 
   result = pipeline.run()
   logging.info("Submitted Dataflow job: %s", result)

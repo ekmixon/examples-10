@@ -20,10 +20,10 @@ def send_request(input_tensor):
   host = '127.0.0.1'
   port = 8500
   model_name = "finance-model"
-  path = 'http://{}:{}/v1/models/{}'.format(host, port, model_name)
+  path = f'http://{host}:{port}/v1/models/{model_name}'
   payoad = {'instances': input_tensor.tolist()}
 
-  result = requests.post(url=path + ':predict', json=payoad).json()[
-    'predictions'][0]
+  result = requests.post(
+      url=f'{path}:predict', json=payoad).json()['predictions'][0]
 
   print(result)

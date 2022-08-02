@@ -69,12 +69,20 @@ def create_function_embeddings(argv=None):
   )
 
   (embeddings  # pylint: disable=expression-not-assigned
-    | "Format for Embeddings CSV Write" >> beam.ParDo(dict_to_csv.DictToCSVString(
-        ['nwo', 'path', 'function_name', 'lineno', 'original_function', 'function_embedding']))
-    | "Write Embeddings to CSV" >> beam.io.WriteToText('{}/func-index'.format(args.output_dir),
-                                                       file_name_suffix='.csv',
-                                                       num_shards=100)
-  )
+   | "Format for Embeddings CSV Write" >> beam.ParDo(
+       dict_to_csv.DictToCSVString([
+           'nwo',
+           'path',
+           'function_name',
+           'lineno',
+           'original_function',
+           'function_embedding',
+       ]))
+   | ("Write Embeddings to CSV" >> beam.io.WriteToText(
+       f'{args.output_dir}/func-index',
+       file_name_suffix='.csv',
+       num_shards=100,
+   )))
 
   result = pipeline.run()
   logging.info("Submitted Dataflow job: %s", result)

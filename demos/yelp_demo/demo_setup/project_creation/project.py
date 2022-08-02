@@ -220,6 +220,5 @@ def IsProjectParentValid(properties):
   if ('organization-id' not in properties and
       'parent-folder-id' not in properties):
     return False
-  if 'organization-id' in properties and 'parent-folder-id' in properties:
-    return False
-  return True
+  return ('organization-id' not in properties
+          or 'parent-folder-id' not in properties)

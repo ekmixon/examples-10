@@ -62,7 +62,7 @@ def run_preprocess(argv=None):
   temp_folder = 'data'
   if not os.path.exists(temp_folder):
     os.mkdir(temp_folder)
-  file_path = os.path.join(temp_folder, 'data_{}.csv'.format(args.cutoff_year))
+  file_path = os.path.join(temp_folder, f'data_{args.cutoff_year}.csv')
   time_series.to_csv(file_path, index=False)
   storage_helper.upload_to_storage(args.bucket, temp_folder)
   shutil.rmtree(temp_folder)

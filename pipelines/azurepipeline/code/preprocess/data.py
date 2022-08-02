@@ -15,7 +15,7 @@ def check_dir(path):
 
 def download(source, target, force_clear=False):
     if force_clear and os.path.exists(target):
-        print('Removing {}...'.format(target))
+        print(f'Removing {target}...')
         shutil.rmtree(target)
 
     check_dir(target)
@@ -26,14 +26,14 @@ def download(source, target, force_clear=False):
         return
 
     if source.startswith('http'):
-        print("Downloading from {} to {}".format(source, target))
+        print(f"Downloading from {source} to {target}")
         wget.download(source, targt_file)
         print("Done!")
     else:
-        print("Copying from {} to {}".format(source, target))
+        print(f"Copying from {source} to {target}")
         shutil.copyfile(source, targt_file)
 
-    print('Unzipping {}'.format(targt_file))
+    print(f'Unzipping {targt_file}')
     zipr = zipfile.ZipFile(targt_file)
     zipr.extractall(target)
     zipr.close()
@@ -42,28 +42,27 @@ def download(source, target, force_clear=False):
 def process_image(path, image_size=160):
     img_raw = tf.io.read_file(path)
     img_tensor = tf.image.decode_jpeg(img_raw, channels=3)
-    img_final = tf.image.resize(img_tensor, [image_size, image_size]) / 255
-    return img_final
+    return tf.image.resize(img_tensor, [image_size, image_size]) / 255
 
 
 def walk_images(path, image_size=160):
     imgs = []
-    print('Scanning {}'.format(path))
+    print(f'Scanning {path}')
     # find subdirectories in base path
     # (they should be the labels)
     labels = []
     for (_, dirs, _) in os.walk(path):
-        print('Found {}'.format(dirs))
+        print(f'Found {dirs}')
         labels = dirs
         break
 
     for d in labels:
         tmp_path = os.path.join(path, d)
-        print('Processing {}'.format(tmp_path))
+        print(f'Processing {tmp_path}')
         # only care about files in directory
         for item in os.listdir(tmp_path):
             if not item.lower().endswith('.jpg'):
-                print('skipping {}'.format(item))
+                print(f'skipping {item}')
                 continue
 
             image = os.path.join(tmp_path, item)
@@ -73,7 +72,7 @@ def walk_images(path, image_size=160):
                 # write out good images
                 imgs.append(image)
             except img.shape[2] != 3:
-                print('{}\n'.format(image))
+                print(f'{image}\n')
 
     return imgs
 
@@ -96,14 +95,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(args)
 
-    print('Using TensorFlow v.{}'.format(tf.__version__))
+    print(f'Using TensorFlow v.{tf.__version__}')
 
     base_path = Path(args.base_path).resolve(strict=False)
-    print('Base Path:  {}'.format(base_path))
+    print(f'Base Path:  {base_path}')
     data_path = base_path.joinpath(args.data).resolve(strict=False)
-    print('Train Path: {}'.format(data_path))
+    print(f'Train Path: {data_path}')
     target_path = Path(base_path).resolve(strict=False).joinpath(args.target)
-    print('Train File: {}'.format(target_path))
+    print(f'Train File: {target_path}')
     zip_path = args.zipfile
 
     print('Acquiring data...')
@@ -117,6 +116,6 @@ if __name__ == "__main__":
         images = walk_images(str(data_path), args.img_size)
 
         # save file
-        print('writing dataset to {}'.format(target_path))
+        print(f'writing dataset to {target_path}')
         with open(str(target_path), 'w+') as f:
             f.write('\n'.join(images))

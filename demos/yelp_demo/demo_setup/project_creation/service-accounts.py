@@ -19,19 +19,16 @@ def GenerateConfig(context):
 
   project_id = context.properties['project']
 
-  resources = []
-  for service_account in context.properties['service-accounts']:
-    resources.append({
-        'name': project_id + '-' + service_account,
-        'type': 'iam.v1.serviceAccount',
-        'metadata': {
-            'dependsOn': [project_id]
-        },
-        'properties': {
-            'accountId': service_account,
-            'displayName': service_account,
-            'projectId': project_id
-        }
-    })
-
+  resources = [{
+      'name': f'{project_id}-{service_account}',
+      'type': 'iam.v1.serviceAccount',
+      'metadata': {
+          'dependsOn': [project_id]
+      },
+      'properties': {
+          'accountId': service_account,
+          'displayName': service_account,
+          'projectId': project_id,
+      },
+  } for service_account in context.properties['service-accounts']]
   return {'resources': resources}

@@ -105,8 +105,7 @@ def run_training(argv=None):
   accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 
   logging.info('training the model...')
-  time_dct = {}
-  time_dct['start'] = time.time()
+  time_dct = {'start': time.time()}
   for i in range(1, args.epochs):
     sess.run(
         train_opt,

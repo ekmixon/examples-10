@@ -58,7 +58,7 @@ PROW_DICT = argo_build_util.get_prow_dict()
 class Builder:
   def __init__(self, name=None, namespace=None, test_target_name=None,
                bucket=None, cluster_pattern=None,
-               **kwargs): # pylint: disable=unused-argument
+               **kwargs):  # pylint: disable=unused-argument
     """Initialize a builder.
 
     Args:
@@ -76,10 +76,10 @@ class Builder:
     # should be mounted.
     self.mount_path = "/mnt/" + "test-data-volume"
     # test_dir is the root directory for all data for a particular test run.
-    self.test_dir = self.mount_path + "/" + self.name
+    self.test_dir = f"{self.mount_path}/{self.name}"
     # output_dir is the directory to sync to GCS to contain the output for this
     # job.
-    self.output_dir = self.test_dir + "/output"
+    self.output_dir = f"{self.test_dir}/output"
 
     # We prefix the artifacts directory with junit because
     # that's what spyglass/prow requires. This ensures multiple
@@ -88,20 +88,20 @@ class Builder:
     self.artifacts_dir = self.output_dir + "/artifacts/junit_{0}".format(name)
 
     # source directory where all repos should be checked out
-    self.src_root_dir = self.test_dir + "/src"
+    self.src_root_dir = f"{self.test_dir}/src"
     # The directory containing the kubeflow/examples repo
-    self.src_dir = self.src_root_dir + "/kubeflow/examples"
+    self.src_dir = f"{self.src_root_dir}/kubeflow/examples"
 
     # Top level directories for python code
     self.kubeflow_py = self.src_dir
 
     # The directory within the kubeflow_testing submodule containing
     # py scripts to use.
-    self.kubeflow_testing_py = self.src_root_dir + "/kubeflow/testing/py"
+    self.kubeflow_testing_py = f"{self.src_root_dir}/kubeflow/testing/py"
 
     # The directory within the tf-operator submodule containing
     # py scripts to use.
-    self.kubeflow_tfjob_py = self.src_root_dir + "/kubeflow/tf-operator/py"
+    self.kubeflow_tfjob_py = f"{self.src_root_dir}/kubeflow/tf-operator/py"
 
     # The class name to label junit files.
     # We want to be able to group related tests in test grid.
@@ -120,62 +120,68 @@ class Builder:
 
   def _build_workflow(self):
     """Create the scaffolding for the Argo workflow"""
-    workflow = {
+    return {
         "apiVersion": "argoproj.io/v1alpha1",
         "kind": "Workflow",
         "metadata": {
-            "name": self.name,
-            "namespace": self.namespace,
-            "labels": argo_build_util.add_dicts([{
-              "workflow": self.name,
-                "workflow_template": TEMPLATE_LABEL,
-                }, argo_build_util.get_prow_labels()]),
+            "name":
+            self.name,
+            "namespace":
+            self.namespace,
+            "labels":
+            argo_build_util.add_dicts([
+                {
+                    "workflow": self.name,
+                    "workflow_template": TEMPLATE_LABEL,
+                },
+                argo_build_util.get_prow_labels(),
+            ]),
         },
         "spec": {
-            "entrypoint": E2E_DAG_NAME,
+            "entrypoint":
+            E2E_DAG_NAME,
             # Have argo garbage collect old workflows otherwise we overload the API
             # server.
-            "ttlSecondsAfterFinished": 7 * 24 * 60 * 60,
+            "ttlSecondsAfterFinished":
+            7 * 24 * 60 * 60,
             "volumes": [
                 {
                     "name": "gcp-credentials",
                     "secret": {
                         "secretName": "kubeflow-testing-credentials",
-                      },
-                  },
+                    },
+                },
                 {
                     "name": DATA_VOLUME,
                     "persistentVolumeClaim": {
                         "claimName": NFS_VOLUME_CLAIM,
-                      },
-                  },
-              ],
-            "onExit": EXIT_DAG_NAME,
+                    },
+                },
+            ],
+            "onExit":
+            EXIT_DAG_NAME,
             "templates": [
                 {
                     "dag": {
                         "tasks": [],
-                      },
+                    },
                     "name": E2E_DAG_NAME,
-                  },
+                },
                 {
                     "dag": {
                         "tasks": [],
-                      },
+                    },
                     "name": TESTS_DAG_NAME,
-
-                  },
+                },
                 {
                     "dag": {
                         "tasks": [],
-                      },
+                    },
                     "name": EXIT_DAG_NAME,
-                  }
-              ],
-          },  # spec
-    }  # workflow
-
-    return workflow
+                },
+            ],
+        },  # spec
+    }
 
   def _build_task_template(self):
     """Return a template for all the tasks"""
@@ -204,11 +210,21 @@ class Builder:
 
     # Define common environment variables to be added to all steps
     common_env = [
-        {'name': 'PYTHONPATH',
-         'value': ":".join([self.kubeflow_py, self.kubeflow_py + "/py",
-                            self.kubeflow_testing_py, self.kubeflow_tfjob_py])},
-        {'name': 'KUBECONFIG',
-         'value': os.path.join(self.test_dir, 'kfctl_test/.kube/kubeconfig')},
+        {
+            'name':
+            'PYTHONPATH',
+            'value':
+            ":".join([
+                self.kubeflow_py,
+                f"{self.kubeflow_py}/py",
+                self.kubeflow_testing_py,
+                self.kubeflow_tfjob_py,
+            ]),
+        },
+        {
+            'name': 'KUBECONFIG',
+            'value': os.path.join(self.test_dir, 'kfctl_test/.kube/kubeconfig'),
+        },
     ]
 
     task_template["container"]["env"].extend(common_env)
@@ -228,13 +244,8 @@ class Builder:
 
     argo_build_util.add_task_to_dag(workflow, dag_name, step, dependencies)
 
-    # Return the newly created template; add_task_to_dag makes a copy of the template
-    # So we need to fetch it from the workflow spec.
-    for t in workflow["spec"]["templates"]:
-      if t["name"] == name:
-        return t
-
-    return None
+    return next((t for t in workflow["spec"]["templates"] if t["name"] == name),
+                None)
 
   def _build_tests_dag_notebooks(self):
     """Build the dag for the set of tests to run against a KF deployment."""
@@ -244,15 +255,15 @@ class Builder:
     # ***************************************************************************
     # Test xgboost
     step_name = "xgboost-synthetic"
-    command = ["pytest", "xgboost_test.py",
-               # Increase the log level so that info level log statements show up.
-               "--log-cli-level=info",
-               "--log-cli-format='%(levelname)s|%(asctime)s|%(pathname)s|%(lineno)d| %(message)s'",
-               # Test timeout in seconds.
-               "--timeout=1800",
-               "--junitxml=" + self.artifacts_dir + "/junit_xgboost-synthetic-test.xml",
-               "--notebook_artifacts_dir=" + self.artifacts_dir + "/xgboost-synthetic-test-notebooks",
-               ]
+    command = [
+        "pytest",
+        "xgboost_test.py",
+        "--log-cli-level=info",
+        "--log-cli-format='%(levelname)s|%(asctime)s|%(pathname)s|%(lineno)d| %(message)s'",
+        "--timeout=1800",
+        f"--junitxml={self.artifacts_dir}/junit_xgboost-synthetic-test.xml",
+        f"--notebook_artifacts_dir={self.artifacts_dir}/xgboost-synthetic-test-notebooks",
+    ]
 
     dependencies = []
     xgboost_step = self._build_step(step_name, self.workflow, TESTS_DAG_NAME, task_template,
@@ -264,14 +275,14 @@ class Builder:
     # ***************************************************************************
     # Test mnist
     step_name = "mnist"
-    command = ["pytest", "mnist_gcp_test.py",
-               # Increase the log level so that info level log statements show up.
-               "--log-cli-level=info",
-               "--log-cli-format='%(levelname)s|%(asctime)s|%(pathname)s|%(lineno)d| %(message)s'",
-               # Test timeout in seconds.
-               "--timeout=1800",
-               "--junitxml=" + self.artifacts_dir + "/junit_mnist-gcp-test.xml",
-               ]
+    command = [
+        "pytest",
+        "mnist_gcp_test.py",
+        "--log-cli-level=info",
+        "--log-cli-format='%(levelname)s|%(asctime)s|%(pathname)s|%(lineno)d| %(message)s'",
+        "--timeout=1800",
+        f"--junitxml={self.artifacts_dir}/junit_mnist-gcp-test.xml",
+    ]
 
     dependencies = []
     mnist_step = self._build_step(step_name, self.workflow, TESTS_DAG_NAME, task_template,
@@ -294,7 +305,7 @@ class Builder:
                "copy_artifacts"]
 
     if self.bucket:
-      command.append("--bucket=" + self.bucket)
+      command.append(f"--bucket={self.bucket}")
 
     dependencies = []
 
@@ -326,7 +337,7 @@ class Builder:
     main_repo = argo_build_util.get_repo_from_prow_env()
     if not main_repo:
       logging.info("Prow environment variables for repo not set")
-      main_repo = MAIN_REPO + "@HEAD"
+      main_repo = f"{MAIN_REPO}@HEAD"
     logging.info("Main repository: %s", main_repo)
     repos = [main_repo]
 
@@ -337,9 +348,11 @@ class Builder:
     checkout = argo_build_util.deep_copy(task_template)
 
     checkout["name"] = "checkout"
-    checkout["container"]["command"] = ["/usr/local/bin/checkout_repos.sh",
-                                        "--repos=" + ",".join(repos),
-                                        "--src_dir=" + self.src_root_dir]
+    checkout["container"]["command"] = [
+        "/usr/local/bin/checkout_repos.sh",
+        "--repos=" + ",".join(repos),
+        f"--src_dir={self.src_root_dir}",
+    ]
 
     argo_build_util.add_task_to_dag(self.workflow, E2E_DAG_NAME, checkout, [])
 
@@ -350,13 +363,14 @@ class Builder:
 
     credentials["name"] = "get-credentials"
     if self.cluster_pattern:
-      credentials["container"]["command"] = ["python3",
-                                             "-m",
-                                             "kubeflow.testing."
-                                             "get_kf_testing_cluster",
-                                             "--base=" + self.cluster_pattern,
-                                             "get-credentials",
-                                             ]
+      credentials["container"]["command"] = [
+          "python3",
+          "-m",
+          "kubeflow.testing."
+          "get_kf_testing_cluster",
+          f"--base={self.cluster_pattern}",
+          "get-credentials",
+      ]
     else:
       credentials["container"]["command"] = ["python3",
                                              "-m",
@@ -374,7 +388,7 @@ class Builder:
     if self.test_target_name.startswith("notebooks"):
       self._build_tests_dag_notebooks()
     else:
-      raise RuntimeError('Invalid test_target_name ' + self.test_target_name)
+      raise RuntimeError(f'Invalid test_target_name {self.test_target_name}')
 
     # Add a task to run the dag
     dependencies = [credentials["name"]]
@@ -388,11 +402,13 @@ class Builder:
     # ***************************************************************************
     # TODO(jlewi): run_e2e_workflow.py should probably create the PR symlink
     step_name = "create-pr-symlink"
-    command = ["python",
-               "-m",
-               "kubeflow.testing.prow_artifacts",
-               "--artifacts_dir=" + self.output_dir,
-               "create_pr_symlink"]
+    command = [
+        "python",
+        "-m",
+        "kubeflow.testing.prow_artifacts",
+        f"--artifacts_dir={self.output_dir}",
+        "create_pr_symlink",
+    ]
 
     if self.bucket:
       command.append(self.bucket)

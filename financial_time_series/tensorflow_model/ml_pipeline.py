@@ -91,4 +91,4 @@ def preprocess_train_deploy(
 
 if __name__ == '__main__':
   import kfp.compiler as compiler
-  compiler.Compiler().compile(preprocess_train_deploy, __file__ + '.tar.gz')
+  compiler.Compiler().compile(preprocess_train_deploy, f'{__file__}.tar.gz')

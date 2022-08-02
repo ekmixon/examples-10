@@ -38,7 +38,7 @@ def main():
   output = None
   connection = {"text": "", "success": False}
   img_id = str(uuid.uuid4())
-  img_path = "static/tmp/" + img_id + ".png"
+  img_path = f"static/tmp/{img_id}.png"
   try:
     # get a random test MNIST image
     x, y, _ = random_mnist(img_path)
@@ -49,12 +49,10 @@ def main():
                                        server_name=name_arg,
                                        timeout=10)
     # if no exceptions thrown, server connection was a success
-    connection["text"] = "Connected (model version: " + str(ver) + ")"
+    connection["text"] = f"Connected (model version: {str(ver)})"
     connection["success"] = True
     # parse class confidence scores from server prediction
-    scores_dict = []
-    for i in range(0, 10):
-      scores_dict += [{"index": str(i), "val": scores[i]}]
+    scores_dict = [{"index": str(i), "val": scores[i]} for i in range(10)]
     output = {"truth": y, "prediction": pred,
               "img_path": img_path, "scores": scores_dict}
   except Exception as e: # pylint: disable=broad-except
@@ -77,9 +75,9 @@ def remove_resource(path):
   """
   try:
     os.remove(path)
-    print("removed " + path)
+    print(f"removed {path}")
   except OSError:
-    print("no file at " + path)
+    print(f"no file at {path}")
 
 
 if __name__ == '__main__':

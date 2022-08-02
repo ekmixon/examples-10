@@ -41,18 +41,18 @@ def load_dataset(base_path, dset, split=None):
     # find labels - parent folder names
     labels = {}
     for (_, dirs, _) in os.walk(base_path):
-        print('found {}'.format(dirs))
+        print(f'found {dirs}')
         labels = {k: v for (v, k) in enumerate(dirs)}
-        print('using {}'.format(labels))
+        print(f'using {labels}')
         break
 
     # load all files along with idx label
-    print('loading dataset from {}'.format(dset))
+    print(f'loading dataset from {dset}')
     with open(dset, 'r') as d:
         data = [(str(Path(line.strip()).absolute()),
                  labels[Path(line.strip()).parent.name]) for line in d.readlines()]  # noqa: E501
 
-    print('dataset size: {}\nsuffling data...'.format(len(data)))
+    print(f'dataset size: {len(data)}\nsuffling data...')
 
     # shuffle data
     shuffle(data)
@@ -132,23 +132,23 @@ def run(
 
     # add time prefix folder
     file_output = str(Path(output).joinpath('latest.h5'))
-    print('Serializing h5 model to:\n{}'.format(file_output))
+    print(f'Serializing h5 model to:\n{file_output}')
     model.save(file_output)
 
     return generate_hash(file_output, 'kf_pipeline')
 
 
 def generate_hash(dfile, key):
-    print('Generating hash for {}'.format(dfile))
+    print(f'Generating hash for {dfile}')
     m = hmac.new(str.encode(key), digestmod=hashlib.sha256)
     BUF_SIZE = 65536
     with open(str(dfile), 'rb') as myfile:
         while True:
-            data = myfile.read(BUF_SIZE)
-            if not data:
-                break
-            m.update(data)
+            if data := myfile.read(BUF_SIZE):
+                m.update(data)
 
+            else:
+                break
     return m.hexdigest()
 
 
@@ -172,7 +172,7 @@ if __name__ == "__main__":
     parser.add_argument('-f', '--dataset', help='cleaned data listing')
     args = parser.parse_args()
 
-    info('Using TensorFlow v.{}'.format(tf.__version__))
+    info(f'Using TensorFlow v.{tf.__version__}')
 
     data_path = Path(args.base_path).joinpath(args.data).resolve(strict=False)
     target_path = Path(args.base_path).resolve(
@@ -195,7 +195,7 @@ if __name__ == "__main__":
     dataset_signature = generate_hash(dataset, 'kf_pipeline')
     # printing out args for posterity
     for i in args:
-        print('{} => {}'.format(i, args[i]))
+        print(f'{i} => {args[i]}')
 
     model_signature = run(**args)
 
@@ -206,6 +206,6 @@ if __name__ == "__main__":
     with open(str(params), 'w') as f:
         json.dump(args, f)
 
-    print(' Saved to {}'.format(str(params)))
+    print(f' Saved to {str(params)}')
 
     # python train.py -d train -e 3 -b 32 -l 0.0001 -o model -f train.txt

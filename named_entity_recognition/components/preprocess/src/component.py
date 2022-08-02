@@ -16,8 +16,7 @@ def read_data(input1_path):
   with gfile.Open(input1_path, 'r') as input1_file:
     print('processing')
     print('input file', input1_file)
-    csv_data = pd.read_csv(input1_file, error_bad_lines=False)
-    return csv_data
+    return pd.read_csv(input1_file, error_bad_lines=False)
 
 
 # Defining and parsing the command-line arguments
@@ -56,16 +55,15 @@ print(data.head())
 
 
 def agg_func(s):
-  return [(w, t) for w, t in zip(s["word"].values.tolist(),
-                                 s["tag"].values.tolist())]
+  return list(zip(s["word"].values.tolist(), s["tag"].values.tolist()))
 
 
 grouped = data.groupby("sentence_idx").apply(agg_func)
-sentences = [s for s in grouped]
+sentences = list(grouped)
 sentences_list = [" ".join([s[0] for s in sent]) for sent in sentences]
 
 # calculate maxlen
-maxlen = max([len(s) for s in sentences])
+maxlen = max(len(s) for s in sentences)
 print('Maximum sequence length:', maxlen)
 
 # calculate words

@@ -62,8 +62,7 @@ def parse_arguments():
                       default=0.01,
                       help='Learning rate for training.')
 
-  args = parser.parse_known_args()[0]
-  return args
+  return parser.parse_known_args()[0]
 
 
 def conv_model(features, labels, mode, params):
@@ -210,7 +209,7 @@ def main(_):
     export_final = tf.estimator.FinalExporter(
         args.tf_export_dir, serving_input_receiver_fn=cnn_serving_input_receiver_fn)
   else:
-    print("No such model type: %s" % args.tf_model_type)
+    print(f"No such model type: {args.tf_model_type}")
     sys.exit(1)
 
   train_spec = tf.estimator.TrainSpec(

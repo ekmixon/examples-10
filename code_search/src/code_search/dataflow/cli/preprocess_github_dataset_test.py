@@ -15,8 +15,7 @@ class TestPreprocess(unittest.TestCase):
     out_dir = tempfile.mkdtemp()
     logging.info("Using out directory: %s", out_dir)
     result = preprocess_github_dataset.preprocess_github_dataset(
-      ["--github_files=" + data_file,
-       "--data_dir=" + out_dir])
+        [f"--github_files={data_file}", f"--data_dir={out_dir}"])
 
     result.wait_until_finish()
 

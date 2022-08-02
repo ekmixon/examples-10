@@ -30,22 +30,28 @@ def gh_summ_serveonly(
   serve = dsl.ContainerOp(
       name='serve',
       image='gcr.io/google-samples/ml-pipeline-kubeflow-tfserve:v2',
-      arguments=["--model_name", 'ghsumm-%s' % (dsl.RUN_ID_PLACEHOLDER,),
+      arguments=[
+          "--model_name",
+          f'ghsumm-{dsl.RUN_ID_PLACEHOLDER}',
           "--model_path",
-          'gs://aju-dev-demos-codelabs/kubecon/example_t2t_model/model_output/export'
-          ]
-      ).apply(gcp.use_gcp_secret('user-gcp-sa'))
+          'gs://aju-dev-demos-codelabs/kubecon/example_t2t_model/model_output/export',
+      ],
+  ).apply(gcp.use_gcp_secret('user-gcp-sa'))
 
   webapp = dsl.ContainerOp(
       name='webapp',
       image='gcr.io/google-samples/ml-pipeline-webapp-launcher:v3ap',
-      arguments=["--model_name", 'ghsumm-%s' % (dsl.RUN_ID_PLACEHOLDER,),
-          "--github_token", github_token]
-      )
+      arguments=[
+          "--model_name",
+          f'ghsumm-{dsl.RUN_ID_PLACEHOLDER}',
+          "--github_token",
+          github_token,
+      ],
+  )
 
   webapp.after(serve)
 
 
 if __name__ == '__main__':
   import kfp.compiler as compiler
-  compiler.Compiler().compile(gh_summ_serveonly, __file__ + '.tar.gz')
+  compiler.Compiler().compile(gh_summ_serveonly, f'{__file__}.tar.gz')

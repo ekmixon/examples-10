@@ -38,7 +38,7 @@ def main():
   output = None
   connection = {"text": "", "success": False}
   img_id = str(uuid.uuid4())
-  img_path = "static/tmp/" + img_id + ".png"
+  img_path = f"static/tmp/{img_id}.png"
   try:
     # get a random test MNIST image
     x, y, _ = random_mnist(img_path)
@@ -49,14 +49,12 @@ def main():
     connection["text"] = "Connected to Seldon GRPC model serving service"
     connection["success"] = True
     # parse class confidence scores from server prediction
-    scores_dict = []
-    for i in range(0, 10):
-      scores_dict += [{"index": str(i), "val": pred[i]}]
+    scores_dict = [{"index": str(i), "val": pred[i]} for i in range(10)]
     output = {"truth": y,
               "img_path": img_path, "scores": scores_dict}
   except IOError as e:
     # server connection failed
-    connection["text"] = "Could Not Connect to Server: " + str(e)
+    connection["text"] = f"Could Not Connect to Server: {str(e)}"
   # after 10 seconds, delete cached image file from server
   t = Timer(10.0, remove_resource, [img_path])
   t.start()

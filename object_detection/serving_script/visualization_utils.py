@@ -497,8 +497,8 @@ def draw_keypoints_on_image(image,
   keypoints_x = [k[1] for k in keypoints]
   keypoints_y = [k[0] for k in keypoints]
   if use_normalized_coordinates:
-    keypoints_x = tuple([im_width * x for x in keypoints_x])
-    keypoints_y = tuple([im_height * y for y in keypoints_y])
+    keypoints_x = tuple(im_width * x for x in keypoints_x)
+    keypoints_y = tuple(im_height * y for y in keypoints_y)
   for keypoint_x, keypoint_y in zip(keypoints_x, keypoints_y):
     draw.ellipse([(keypoint_x - radius, keypoint_y - radius),
                   (keypoint_x + radius, keypoint_y + radius)],
@@ -617,25 +617,17 @@ def visualize_boxes_and_labels_on_image_array(
         box_to_color_map[box] = groundtruth_box_visualization_color
       else:
         display_str = ''
-        if not skip_labels:
-          if not agnostic_mode:
-            if classes[i] in category_index.keys():
-              class_name = category_index[classes[i]]['name']
-            else:
-              class_name = 'N/A'
-            display_str = str(class_name)
+        if not skip_labels and not agnostic_mode:
+          class_name = (category_index[classes[i]]['name']
+                        if classes[i] in category_index.keys() else 'N/A')
+          display_str = str(class_name)
         if not skip_scores:
-          if not display_str:
-            display_str = '{}%'.format(int(100*scores[i]))
-          else:
-            display_str = '{}: {}%'.format(display_str, int(100*scores[i]))
+          display_str = (f'{display_str}: {int(100*scores[i])}%'
+                         if display_str else f'{int(100*scores[i])}%')
         box_to_display_str_map[box].append(display_str)
-        if agnostic_mode:
-          box_to_color_map[box] = 'DarkOrange'
-        else:
-          box_to_color_map[box] = STANDARD_COLORS[
-              classes[i] % len(STANDARD_COLORS)]
-
+        box_to_color_map[box] = (
+            'DarkOrange' if agnostic_mode else
+            STANDARD_COLORS[classes[i] % len(STANDARD_COLORS)])
   # Draw all boxes onto image.
   for box, color in box_to_color_map.items():
     ymin, xmin, ymax, xmax = box

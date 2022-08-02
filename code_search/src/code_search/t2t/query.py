@@ -31,10 +31,7 @@ def encode_query(encoder, embed_code, query_str):
 
   encoded_str = encoder.encode(query_str) + [text_encoder.EOS_ID]
 
-  embed_code_value = 0
-  if embed_code:
-    embed_code_value = 1
-
+  embed_code_value = 1 if embed_code else 0
   features = {
       "inputs": tf.train.Feature(int64_list=tf.train.Int64List(value=encoded_str)),
       "targets": tf.train.Feature(int64_list=tf.train.Int64List(value=[0])),

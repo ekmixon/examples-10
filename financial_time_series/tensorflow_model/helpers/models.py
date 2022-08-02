@@ -55,9 +55,7 @@ class FlatModel():
                                               stddev=0.0001))
     biases = tf.Variable(tf.ones([self._nr_classes]))
 
-    model = tf.nn.softmax(tf.matmul(feature_data, weights) + biases)
-
-    return model
+    return tf.nn.softmax(tf.matmul(feature_data, weights) + biases)
 
 
 class DeepModel():
@@ -111,6 +109,4 @@ class DeepModel():
 
     hidden_layer_1 = tf.nn.relu(tf.matmul(feature_data, weights1) + biases1)
     hidden_layer_2 = tf.nn.relu(tf.matmul(hidden_layer_1, weights2) + biases2)
-    model = tf.nn.softmax(tf.matmul(hidden_layer_2, weights3) + biases3)
-
-    return model
+    return tf.nn.softmax(tf.matmul(hidden_layer_2, weights3) + biases3)

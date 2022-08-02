@@ -23,19 +23,19 @@ def load_data(tickers, year_cutoff=None):
   # get the data
   bq_query = {}
   for ticker in tickers:
-    query = 'SELECT Date, Close from `bingo-ml-1.market_data.{}`'.format(ticker)
+    query = f'SELECT Date, Close from `bingo-ml-1.market_data.{ticker}`'
     if year_cutoff:
-      query += 'WHERE EXTRACT(YEAR FROM Date) >= {}'.format(year_cutoff)
+      query += f'WHERE EXTRACT(YEAR FROM Date) >= {year_cutoff}'
     bq_query[ticker] = bigquery_client.query(query)
 
-  results = {}
-  for ticker in tickers:
-    results[ticker] = bq_query[ticker].result().to_dataframe().set_index('Date')
-
+  results = {
+      ticker: bq_query[ticker].result().to_dataframe().set_index('Date')
+      for ticker in tickers
+  }
   # sort and fill blanks
   closing_data = pd.DataFrame()
   for ticker in tickers:
-    closing_data['{}_close'.format(ticker)] = results[ticker]['Close']
+    closing_data[f'{ticker}_close'] = results[ticker]['Close']
   closing_data.sort_index(inplace=True)
   closing_data = closing_data.fillna(method='ffill')
 
@@ -56,9 +56,9 @@ def preprocess_data(closing_data):
   log_return_data = pd.DataFrame()
   tickers = [column_header.split("_")[0] for column_header in closing_data.columns.values]
   for ticker in tickers:
-    log_return_data['{}_log_return'.format(ticker)] = np.log(
-        closing_data['{}_close'.format(ticker)] /
-        closing_data['{}_close'.format(ticker)].shift())
+    log_return_data[f'{ticker}_log_return'] = np.log(
+        (closing_data[f'{ticker}_close'] /
+         closing_data[f'{ticker}_close'].shift()))
 
   log_return_data['snp_log_return_positive'] = 0
   log_return_data.ix[log_return_data['snp_log_return'] >= 0, 'snp_log_return_positive'] = 1
@@ -128,9 +128,9 @@ def train_test_split(training_test_data, train_test_ratio=0.8):
 
   training_set_size = int(len(training_test_data) * train_test_ratio)
 
-  train_test_dict = {'training_predictors_tf': predictors_tf[:training_set_size],
-                     'training_classes_tf': classes_tf[:training_set_size],
-                     'test_predictors_tf': predictors_tf[training_set_size:],
-                     'test_classes_tf': classes_tf[training_set_size:]}
-
-  return train_test_dict
+  return {
+      'training_predictors_tf': predictors_tf[:training_set_size],
+      'training_classes_tf': classes_tf[:training_set_size],
+      'test_predictors_tf': predictors_tf[training_set_size:],
+      'test_classes_tf': classes_tf[training_set_size:],
+  }

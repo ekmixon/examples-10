@@ -51,16 +51,16 @@ def main():
   while retries < 20:
     try:
       model_dir = os.path.join(args.model_path, file_io.list_directory(args.model_path)[-1])
-      print("model subdir: %s" % model_dir)
+      print(f"model subdir: {model_dir}")
       break
     except Exception as e:  #pylint: disable=broad-except
       print(e)
-      print("Sleeping %s seconds to sync with GCS..." % sleeptime)
+      print(f"Sleeping {sleeptime} seconds to sync with GCS...")
       time.sleep(sleeptime)
       retries += 1
       sleeptime *= 2
   if retries >= 20:
-    print("could not get model subdir from %s, exiting" % args.model_path)
+    print(f"could not get model subdir from {args.model_path}, exiting")
     exit(1)
 
   logging.getLogger().setLevel(logging.INFO)
@@ -72,10 +72,11 @@ def main():
     # Get cluster name and zone from metadata
     metadata_server = "http://metadata/computeMetadata/v1/instance/"
     metadata_flavor = {'Metadata-Flavor' : 'Google'}
-    cluster = requests.get(metadata_server + "attributes/cluster-name",
-                           headers=metadata_flavor).text
-    zone = requests.get(metadata_server + "zone",
-                        headers=metadata_flavor).text.split('/')[-1]
+    cluster = requests.get(
+        f"{metadata_server}attributes/cluster-name",
+        headers=metadata_flavor).text
+    zone = requests.get(
+        f"{metadata_server}zone", headers=metadata_flavor).text.split('/')[-1]
 
   # logging.info('Getting credentials for GKE cluster %s.' % cluster)
   # subprocess.call(['gcloud', 'container', 'clusters', 'get-credentials', cluster,

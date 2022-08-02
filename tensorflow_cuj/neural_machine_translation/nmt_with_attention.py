@@ -121,7 +121,7 @@ def preprocess_sentence(w):
 
 	# adding a start and an end token to the sentence
 	# so that the model know when to start and stop predicting.
-	w = '<start> ' + w + ' <end>'
+	w = f'<start> {w} <end>'
 	return w
 
 
@@ -156,7 +156,7 @@ def data_loader(hyperparams):
 	data_url = 'http://storage.googleapis.com/download.tensorflow.org/data/spa-eng.zip'
 	path_to_zip = tf.keras.utils.get_file(os.path.join(data_dir, 'spa-eng.zip'), origin=data_url, extract=True)
 	path_to_file = os.path.join(os.path.dirname(path_to_zip), "spa-eng", "spa.txt")
-	print("Path to stored file: {}".format(path_to_file))
+	print(f"Path to stored file: {path_to_file}")
 
 
 	num_examples = hyperparams['NUM_EXAMPLES']
@@ -242,12 +242,12 @@ class NeuralMachineTranslation(object):
 		for epoch in range(self.epochs):
 			enc_hidden = self.encoder.initialize_hidden_state()
 			total_loss = 0
-			
-			for (batch, (inp, targ)) in enumerate(self.dataset.take(self.steps_per_epoch)):
+
+			for inp, targ in self.dataset.take(self.steps_per_epoch):
 				batch_loss = train_step(inp, targ, enc_hidden, optimizer, self.encoder, 
 					self.decoder, self.attention_layer, self.targ_lang, self.hyperparams)
 				total_loss += batch_loss
-			
+
 			# saving (checkpoint) the model every 2 epochs
 			if (epoch + 1) % 2 == 0:
 				checkpoint.save(file_prefix = checkpoint_prefix)
@@ -267,13 +267,13 @@ class NeuralMachineTranslation(object):
 		dec_hidden = enc_hidden
 		dec_input = tf.expand_dims([targ_lang.word_index['<start>']], 0)
 
-		for t in range(max_length_targ):
+		for _ in range(max_length_targ):
 			predictions, dec_hidden, attention_weights = self.decoder(dec_input,
 			                                                     dec_hidden,
 			                                                     enc_out)
-			
+
 			predicted_id = tf.argmax(predictions[0]).numpy()
-			result += targ_lang.index_word[predicted_id] + ' '
+			result += f'{targ_lang.index_word[predicted_id]} '
 
 			if targ_lang.index_word[predicted_id] == '<end>':
 				return result, sentence, attention_plot

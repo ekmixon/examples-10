@@ -43,4 +43,4 @@ def kubeflow_training(
 
 if __name__ == '__main__':
   import kfp.compiler as compiler
-  compiler.Compiler().compile(kubeflow_training, __file__ + '.tar.gz')
+  compiler.Compiler().compile(kubeflow_training, f'{__file__}.tar.gz')

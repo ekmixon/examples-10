@@ -19,9 +19,9 @@ class TextPreprocessor():
 
   def transform(self, instances):
     sequences = self._tokenizer.texts_to_sequences(instances)
-    padded_sequences = pad_sequences(
+    return pad_sequences(
         maxlen=140,
         sequences=sequences,
         padding="post",
-        value=self.number_words - 1)
-    return padded_sequences
+        value=self.number_words - 1,
+    )

@@ -66,8 +66,7 @@ class KubeFormSpawner(KubeSpawner):
         '''.format(registry, repoName)
 
     def options_from_form(self, formdata):
-        options = {}
-        options['image'] = formdata.get('image', [''])[0].strip()
+        options = {'image': formdata.get('image', [''])[0].strip()}
         options['cpu_guarantee'] = formdata.get(
             'cpu_guarantee', [''])[0].strip()
         options['mem_guarantee'] = formdata.get(
@@ -91,30 +90,35 @@ class KubeFormSpawner(KubeSpawner):
 
     @property
     def cpu_guarantee(self):
-        cpu = '500m'
-        if self.user_options.get('cpu_guarantee'):
-            cpu = self.user_options['cpu_guarantee']
-        return cpu
+        return (
+            self.user_options['cpu_guarantee']
+            if self.user_options.get('cpu_guarantee')
+            else '500m'
+        )
 
     @property
     def mem_guarantee(self):
-        mem = '1Gi'
-        if self.user_options.get('mem_guarantee'):
-            mem = self.user_options['mem_guarantee']
-        return mem
+        return (
+            self.user_options['mem_guarantee']
+            if self.user_options.get('mem_guarantee')
+            else '1Gi'
+        )
 
     @property
     def extra_resource_limits(self):
-        extra = ''
-        if self.user_options.get('extra_resource_limits'):
-            extra = json.loads(self.user_options['extra_resource_limits'])
-        return extra
+        return (
+            json.loads(self.user_options['extra_resource_limits'])
+            if self.user_options.get('extra_resource_limits')
+            else ''
+        )
 
     def get_env(self):
         env = super(KubeFormSpawner, self).get_env()
-        gcp_secret_name = os.environ.get('GCP_SECRET_NAME')
-        if gcp_secret_name:
-            env['GOOGLE_APPLICATION_CREDENTIALS'] = '{}/{}.json'.format(SERVICE_ACCOUNT_SECRET_MOUNT, gcp_secret_name)
+        if gcp_secret_name := os.environ.get('GCP_SECRET_NAME'):
+            env[
+                'GOOGLE_APPLICATION_CREDENTIALS'
+            ] = f'{SERVICE_ACCOUNT_SECRET_MOUNT}/{gcp_secret_name}.json'
+
         return env
 
     # TODO(kkasravi): add unit test
@@ -130,20 +134,15 @@ class KubeFormSpawner(KubeSpawner):
         # and truncate to 63 characters
 
         # Set servername based on whether named-server initialised
-        if self.name:
-            servername = '-{}'.format(self.name)
-        else:
-            servername = ''
-
+        servername = f'-{self.name}' if self.name else ''
         legacy, safe, name = self._parse_user_name(self.user.name)
-        rname = template.format(
+        return template.format(
             userid=self.user.id,
             username=safe,
             unescaped_username=name,
             legacy_escape_username=legacy,
-            servername=servername
-            )[:63]
-        return rname
+            servername=servername,
+        )[:63]
 
 
 ###################################################
@@ -182,13 +181,9 @@ c.KubeSpawner.singleuser_working_dir = '/home/jovyan'
 volumes = []
 volume_mounts = []
 
-# Allow environment vars to override uid and gid.
-# This allows local host path mounts to be read/writable
-env_uid = os.environ.get('NOTEBOOK_UID')
-if env_uid:
+if env_uid := os.environ.get('NOTEBOOK_UID'):
     c.KubeSpawner.singleuser_uid = int(env_uid)
-env_gid = os.environ.get('NOTEBOOK_GID')
-if env_gid:
+if env_gid := os.environ.get('NOTEBOOK_GID'):
     c.KubeSpawner.singleuser_fs_gid = int(env_gid)
 access_local_fs = os.environ.get('ACCESS_LOCAL_FS')
 if access_local_fs == 'true':
@@ -258,13 +253,9 @@ if pvcs and pvcs != 'null':
                 'claimName': pvc
             }
         })
-        volume_mounts.append({
-            'name': pvc,
-            'mountPath': '/mnt/' + pvc
-        })
+        volume_mounts.append({'name': pvc, 'mountPath': f'/mnt/{pvc}'})
 
-gcp_secret_name = os.environ.get('GCP_SECRET_NAME')
-if gcp_secret_name:
+if gcp_secret_name := os.environ.get('GCP_SECRET_NAME'):
     volumes.append({
       'name': gcp_secret_name,
       'secret': {

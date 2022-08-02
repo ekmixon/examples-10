@@ -29,7 +29,7 @@ def _get_result_name(result):
 
   return result_namespace, result_name
 
-def apply_k8s_specs(specs, mode=K8S_CREATE): # pylint: disable=too-many-branches,too-many-statements
+def apply_k8s_specs(specs, mode=K8S_CREATE):  # pylint: disable=too-many-branches,too-many-statements
   """Run apply on the provided Kubernetes specs.
 
   Args:
@@ -69,11 +69,7 @@ def apply_k8s_specs(specs, mode=K8S_CREATE): # pylint: disable=too-many-branches
       group, version = spec["apiVersion"].split("/", 1)
 
     if group is None or group.lower() == "apps":
-      if group is None:
-        api = k8s_client.CoreV1Api()
-      else:
-        api = k8s_client.AppsV1Api()
-
+      api = k8s_client.CoreV1Api() if group is None else k8s_client.AppsV1Api()
       create_method_name = f"create_namespaced_{kind_snake}"
       create_method_args = [namespace, spec]
 
@@ -103,9 +99,7 @@ def apply_k8s_specs(specs, mode=K8S_CREATE): # pylint: disable=too-many-branches
         continue
       except k8s_rest.ApiException as e:
         # 409 is conflict indicates resource already exists
-        if e.status == 409 and mode == K8S_CREATE_OR_REPLACE:
-          pass
-        else:
+        if e.status != 409 or mode != K8S_CREATE_OR_REPLACE:
           raise
 
     # Using replace didn't work for virtualservices so we explicitly delete

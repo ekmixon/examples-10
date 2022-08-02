@@ -41,7 +41,7 @@ def load_text_processor(fname='title_pp.dpkl'):
     pp = dpickle.load(f)
 
   num_tokens = max(pp.id2token.keys()) + 1
-  print('Size of vocabulary for {}: {}'.format(fname, num_tokens))
+  print(f'Size of vocabulary for {fname}: {num_tokens}')
   return num_tokens, pp
 
 
@@ -72,8 +72,8 @@ def load_decoder_inputs(decoder_np_vecs='train_title_vecs.npy'):
   # Decoder Target Data Is Ahead By 1 Time Step From Decoder Input Data (Teacher Forcing)
   decoder_target_data = vectorized_title[:, 1:]
 
-  print('Shape of decoder input: {}'.format(decoder_input_data.shape))
-  print('Shape of decoder target: {}'.format(decoder_target_data.shape))
+  print(f'Shape of decoder input: {decoder_input_data.shape}')
+  print(f'Shape of decoder target: {decoder_target_data.shape}')
   return decoder_input_data, decoder_target_data
 
 
@@ -99,7 +99,7 @@ def load_encoder_inputs(encoder_np_vecs='train_body_vecs.npy'):
   # Encoder input is simply the body of the issue text
   encoder_input_data = vectorized_body
   doc_length = encoder_input_data.shape[1]
-  print('Shape of encoder input: {}'.format(encoder_input_data.shape))
+  print(f'Shape of encoder input: {encoder_input_data.shape}')
   return encoder_input_data, doc_length
 
 
@@ -152,8 +152,7 @@ def extract_encoder_model(model):
   keras model object
 
   """
-  encoder_model = model.get_layer('Encoder-Model')
-  return encoder_model
+  return model.get_layer('Encoder-Model')
 
 
 def extract_decoder_model(model):
@@ -210,9 +209,8 @@ def extract_decoder_model(model):
   # Reconstruct dense layers
   dec_bn2 = model.get_layer('Decoder-Batchnorm-2')(gru_out)
   dense_out = model.get_layer('Final-Output-Dense')(dec_bn2)
-  decoder_model = Model([decoder_inputs, gru_inference_state_input],
-                        [dense_out, gru_state_out])
-  return decoder_model
+  return Model([decoder_inputs, gru_inference_state_input],
+               [dense_out, gru_state_out])
 
 
 class Seq2Seq_Inference(object):
@@ -297,18 +295,18 @@ class Seq2Seq_Inference(object):
     """
     if i:
       print('\n\n==============================================')
-      print('============== Example # {} =================\n'.format(i))
+      print(f'============== Example # {i} =================\n')
 
     if url:
       print(url)
 
-    print("Issue Body:\n {} \n".format(body_text))
+    print(f"Issue Body:\n {body_text} \n")
 
     if title_text:
-      print("Original Title:\n {}".format(title_text))
+      print(f"Original Title:\n {title_text}")
 
     emb, gen_title = self.generate_issue_title(body_text)
-    print("\n****** Machine Generated Title (Prediction) ******:\n {}".format(gen_title))
+    print(f"\n****** Machine Generated Title (Prediction) ******:\n {gen_title}")
 
     if self.nn:
       # return neighbors and distances
@@ -321,7 +319,7 @@ class Seq2Seq_Inference(object):
         cols = ['issue_url', 'issue_title', 'body']
         dfcopy = self.rec_df.iloc[neighbors][cols].copy(deep=True)
         dfcopy['dist'] = dist
-        similar_issues_df = dfcopy.query('dist <= {}'.format(threshold))
+        similar_issues_df = dfcopy.query(f'dist <= {threshold}')
 
         print("\n**** Similar Issues (using encoder embedding) ****:\n")
         display(similar_issues_df)
@@ -422,7 +420,7 @@ class Seq2Seq_Inference(object):
       The BLEU Score
 
     """
-    actual, predicted = list(), list()
+    actual, predicted = [], []
     assert len(holdout_bodies) == len(holdout_titles)
     num_examples = len(holdout_bodies)
 
@@ -441,8 +439,4 @@ class Seq2Seq_Inference(object):
 
     # calculate BLEU score
     logging.warning('Calculating BLEU.')
-    #must be careful with nltk api for corpus_bleu!,
-    # expects List[List[List[str]]] for ground truth, using List[List[str]] will give you
-    # erroneous results.
-    bleu = corpus_bleu([[a] for a in actual], predicted)
-    return bleu
+    return corpus_bleu([[a] for a in actual], predicted)

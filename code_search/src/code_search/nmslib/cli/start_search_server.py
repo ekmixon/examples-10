@@ -46,9 +46,7 @@ def build_query_encoder(problem, data_dir, embed_code=False):
     embed_code: Whether to compute embeddings for natural language or code.
   """
   encoder = query.get_encoder(problem, data_dir)
-  query_encoder = functools.partial(query.encode_query, encoder, embed_code)
-
-  return query_encoder
+  return functools.partial(query.encode_query, encoder, embed_code)
 
 def start_search_server(argv=None):
   """Start a Flask REST server.
@@ -70,9 +68,7 @@ def start_search_server(argv=None):
   lookup_data = []
   with tf.gfile.Open(args.lookup_file) as lookup_file:
     reader = csv.reader(lookup_file)
-    for row in reader:
-      lookup_data.append(row)
-
+    lookup_data.extend(iter(reader))
   tmp_index_file = os.path.join(args.tmp_dir, os.path.basename(args.index_file))
 
   logging.info('Reading %s', args.index_file)

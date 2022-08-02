@@ -113,15 +113,10 @@ class TokenizeFunctionDocstrings(beam.DoFn):
       content_blob = element.pop(self.content_key)
       pairs = utils.get_function_docstring_pairs(content_blob)
 
-      result = [
-        dict(zip(self.info_keys, pair_tuple), **element)
-        for pair_tuple in pairs
+      yield [
+          dict(zip(self.info_keys, pair_tuple), **element)
+          for pair_tuple in pairs
       ]
-
-      yield result
-    # TODO(jlewi): Can we narrow down the scope covered by swallowing
-    # errors? It should really only be the AST parsing code so can
-    # we move try/catch into get_function_docstring_pairs?
     except Exception as e:  # pylint: disable=broad-except
       logging.warning('Tokenization failed, %s', e.message)
       yield pvalue.TaggedOutput('err', element)

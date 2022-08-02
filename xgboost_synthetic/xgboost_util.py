@@ -54,8 +54,7 @@ def load_model(model_path):
     logging.info("Downloading model to %s", local_model_path)
     train_blob.download_to_filename(local_model_path)
 
-  model = joblib.load(local_model_path)
-  return model
+  return joblib.load(local_model_path)
 
 def train_model(train_X,
                 train_y,
@@ -104,8 +103,6 @@ def split_gcs_uri(gcs_uri):
   """Split a GCS URI into bucket and path."""
   GCS_REGEX = re.compile("gs://([^/]*)(/.*)?")
   m = GCS_REGEX.match(gcs_uri)
-  bucket = m.group(1)
-  path = ""
-  if m.group(2):
-    path = m.group(2).lstrip("/")
+  bucket = m[1]
+  path = m[2].lstrip("/") if m[2] else ""
   return bucket, path

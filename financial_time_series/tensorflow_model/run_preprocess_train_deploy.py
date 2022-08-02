@@ -64,7 +64,7 @@ def run_preprocess_and_train(argv=None):
   """
   args = parse_arguments(sys.argv if argv is None else argv)
   run_preprocess(sys.argv)
-  sys.argv.append('--blob_path=data/data_{}.csv'.format(args.cutoff_year))
+  sys.argv.append(f'--blob_path=data/data_{args.cutoff_year}.csv')
   run_training(sys.argv)
   run_deploy(sys.argv)
 

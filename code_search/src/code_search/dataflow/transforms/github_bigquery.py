@@ -70,7 +70,7 @@ class ReadGithubDataset(bq_transform.BigQueryRead):
     """
 
     if self.limit:
-      query += '\nLIMIT {}'.format(self.limit)
+      query += f'\nLIMIT {self.limit}'
     return query
 
 
@@ -100,5 +100,5 @@ class ReadTransformedGithubDatasetQuery(object):
     """.format(table)
 
     if self.limit:
-      query += '\nLIMIT {}'.format(self.limit)
+      query += f'\nLIMIT {self.limit}'
     return query

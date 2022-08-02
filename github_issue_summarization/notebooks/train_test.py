@@ -19,15 +19,15 @@ class TrainTest(unittest.TestCase):
 
     this_dir = os.path.dirname(__file__)
     args = [
-      "--sample_size=100",
-      "--num_epochs=1",
-      "--input_data=" + os.path.join(this_dir, "test_data",
-                                     "github_issues_sample.csv"),
-      "--output_model=" + output_model,
-      "--output_body_preprocessor_dpkl="+ body_pp_dpkl,
-      "--output_title_preprocessor_dpkl="+ title_pp_dpkl,
-      "--output_train_title_vecs_npy=" + title_vecs,
-      "--output_train_body_vecs_npy=" + body_vecs,
+        "--sample_size=100",
+        "--num_epochs=1",
+        "--input_data=" + os.path.join(this_dir, "test_data",
+                                       "github_issues_sample.csv"),
+        f"--output_model={output_model}",
+        f"--output_body_preprocessor_dpkl={body_pp_dpkl}",
+        f"--output_title_preprocessor_dpkl={title_pp_dpkl}",
+        f"--output_train_title_vecs_npy={title_vecs}",
+        f"--output_train_body_vecs_npy={body_vecs}",
     ]
 
     train.main(args)
@@ -57,16 +57,16 @@ class TrainTest(unittest.TestCase):
 
     this_dir = os.path.dirname(__file__)
     args = [
-      "--sample_size=100",
-      "--num_epochs=1",
-      "--input_data=" + os.path.join(this_dir, "test_data",
-                                     "github_issues_sample.csv"),
-      "--output_model=" + output_model,
-      "--output_body_preprocessor_dpkl="+ body_pp_dpkl,
-      "--output_title_preprocessor_dpkl="+ title_pp_dpkl,
-      "--output_train_title_vecs_npy=" + title_vecs,
-      "--output_train_body_vecs_npy=" + body_vecs,
-      "--mode=estimator",
+        "--sample_size=100",
+        "--num_epochs=1",
+        "--input_data=" + os.path.join(this_dir, "test_data",
+                                       "github_issues_sample.csv"),
+        f"--output_model={output_model}",
+        f"--output_body_preprocessor_dpkl={body_pp_dpkl}",
+        f"--output_title_preprocessor_dpkl={title_pp_dpkl}",
+        f"--output_train_title_vecs_npy={title_vecs}",
+        f"--output_train_body_vecs_npy={body_vecs}",
+        "--mode=estimator",
     ]
 
     train.main(args)

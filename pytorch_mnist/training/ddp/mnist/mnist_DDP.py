@@ -42,23 +42,24 @@ class DistributedDataParallel(Module):
     self.first_call = True
 
     def allreduce_params():
-      if self.needs_reduction:
-        self.needs_reduction = False  # pylint: disable = attribute-defined-outside-init
-        buckets = {}
-        for param in self.module.parameters():
-          if param.requires_grad and param.grad is not None:
-            tp = type(param.data)
-            if tp not in buckets:
-              buckets[tp] = []
-            buckets[tp].append(param)
-        for tp in buckets:
-          bucket = buckets[tp]
-          grads = [param.grad.data for param in bucket]
-          coalesced = _flatten_dense_tensors(grads)
-          dist.all_reduce(coalesced)
-          coalesced /= dist.get_world_size()
-          for buf, synced in zip(grads, _unflatten_dense_tensors(coalesced, grads)):
-            buf.copy_(synced)
+      if not self.needs_reduction:
+        return
+      self.needs_reduction = False  # pylint: disable = attribute-defined-outside-init
+      buckets = {}
+      for param in self.module.parameters():
+        if param.requires_grad and param.grad is not None:
+          tp = type(param.data)
+          if tp not in buckets:
+            buckets[tp] = []
+          buckets[tp].append(param)
+      for tp in buckets:
+        bucket = buckets[tp]
+        grads = [param.grad.data for param in bucket]
+        coalesced = _flatten_dense_tensors(grads)
+        dist.all_reduce(coalesced)
+        coalesced /= dist.get_world_size()
+        for buf, synced in zip(grads, _unflatten_dense_tensors(coalesced, grads)):
+          buf.copy_(synced)
 
     for param in list(self.module.parameters()):
       def allreduce_hook(*unused):  # pylint: disable = unused-argument
@@ -99,18 +100,18 @@ class Partition(object):  # pylint: disable = all
 class DataPartitioner(object):  # pylint: disable = all
   """ Partitions a dataset into different chuncks. """
 
-  def __init__(self, data, sizes=[0.7, 0.2, 0.1], seed=1234):  # pylint: disable = dangerous-default-value
+  def __init__(self, data, sizes=[0.7, 0.2, 0.1], seed=1234):# pylint: disable = dangerous-default-value
     self.data = data
     self.partitions = []
     rng = Random()
     rng.seed(seed)
     data_len = len(data)
-    indexes = [x for x in range(0, data_len)]
+    indexes = list(range(data_len))
     rng.shuffle(indexes)
 
     for frac in sizes:
       part_len = int(frac * data_len)
-      self.partitions.append(indexes[0:part_len])
+      self.partitions.append(indexes[:part_len])
       indexes = indexes[part_len:]
 
   def use(self, partition):
@@ -141,13 +142,14 @@ class Net(nn.Module):
 def partition_dataset(rank):
   """ Partitioning MNIST """
   dataset = datasets.MNIST(
-    './data{}'.format(rank),
-    train=True,
-    download=True,
-    transform=transforms.Compose([
-      transforms.ToTensor(),
-      transforms.Normalize((0.1307,), (0.3081,))
-    ]))
+      f'./data{rank}',
+      train=True,
+      download=True,
+      transform=transforms.Compose([
+          transforms.ToTensor(),
+          transforms.Normalize((0.1307, ), (0.3081, ))
+      ]),
+  )
   size = dist.get_world_size()
   bsz = int(gbatch_size / float(size))
   train_sampler = torch.utils.data.distributed.DistributedSampler(dataset)
@@ -204,17 +206,15 @@ def run(modelpath, gpu):
     if not os.path.exists(model_dir):
       os.makedirs(model_dir)
     if gpu:
-      model_path = model_dir + "/model_gpu.dat"
+      model_path = f"{model_dir}/model_gpu.dat"
     else:
-      model_path = model_dir + "/model_cpu.dat"
-    logging.info("Saving model in {}".format(model_path))  # pylint: disable = logging-format-interpolation
+      model_path = f"{model_dir}/model_cpu.dat"
+    logging.info(f"Saving model in {model_path}")
     torch.save(model.module.state_dict(), model_path)
   if gpu:
-    logging.info("GPU training time= {}".format(  # pylint: disable = logging-format-interpolation
-      str(datetime.datetime.now() - time_start)))  # pylint: disable = logging-format-interpolation
+    logging.info(f"GPU training time= {str(datetime.datetime.now() - time_start)}")
   else:
-    logging.info("CPU training time= {}".format(  # pylint: disable = logging-format-interpolation
-      str(datetime.datetime.now() - time_start)))  # pylint: disable = logging-format-interpolation
+    logging.info(f"CPU training time= {str(datetime.datetime.now() - time_start)}")
 
 
 if __name__ == "__main__":

@@ -34,9 +34,7 @@ def split_gcs_uri(gcs_uri):
   """Split a GCS URI into bucket and path."""
   m = GCS_REGEX.match(gcs_uri)
   bucket = m.group(1)
-  path = ""
-  if m.group(2):
-    path = m.group(2).lstrip("/")
+  path = m.group(2).lstrip("/") if m.group(2) else ""
   return bucket, path
 
 def is_gcs_path(gcs_uri):
@@ -74,17 +72,15 @@ def process_input_file(remote_file):
     input_data = remote_file
 
   ext = os.path.splitext(input_data)[-1]
-  if ext.lower() == '.zip':
-    zip_ref = zipfile.ZipFile(input_data, 'r')
-    zip_ref.extractall('.')
-    zip_ref.close()
+  if ext.lower() != '.zip':
+    return input_data
+
+  zip_ref = zipfile.ZipFile(input_data, 'r')
+  zip_ref.extractall('.')
+  zip_ref.close()
     # TODO(jlewi): Hardcoding the file in the Archive to use is brittle.
     # We should probably just require the input to be a CSV file.:
-    csv_file = 'github_issues.csv'
-  else:
-    csv_file = input_data
-
-  return csv_file
+  return 'github_issues.csv'
 
 def wait_for_preprocessing(preprocessed_file):
   """Wait for preprocessing.
@@ -98,13 +94,11 @@ def wait_for_preprocessing(preprocessed_file):
   # It might be better to make preprocessing a separate job.
   # We should move this code since its only needed when using
   # TF.Estimator
-  while True:
-    if os.path.isfile(preprocessed_file):
-      break
+  while not os.path.isfile(preprocessed_file):
     logging.info("Waiting for dataset")
     time.sleep(2)
 
-def main(unparsed_args=None):  # pylint: disable=too-many-statements
+def main(unparsed_args=None):# pylint: disable=too-many-statements
   # Parsing flags.
   parser = argparse.ArgumentParser()
   parser.add_argument("--sample_size", type=int, default=2000000)
@@ -156,8 +150,8 @@ def main(unparsed_args=None):  # pylint: disable=too-many-statements
 
 
   mode = args.mode.lower()
-  if not mode in ["estimator", "keras"]:
-    raise ValueError("Unrecognized mode %s; must be keras or estimator" % mode)
+  if mode not in ["estimator", "keras"]:
+    raise ValueError(f"Unrecognized mode {mode}; must be keras or estimator")
 
   csv_file = process_input_file(args.input_data)
 

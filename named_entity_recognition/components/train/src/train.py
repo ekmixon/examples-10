@@ -89,7 +89,7 @@ loss, accuracy = model.evaluate(X_test, np.array(y_test))
 print('saved model to ', args.output_model_path)
 model.save(MODEL_FILE)
 with file_io.FileIO(MODEL_FILE, mode='rb') as input_f:
-  with file_io.FileIO(args.output_model_path + '/' + MODEL_FILE, mode='wb+') as output_f:
+  with file_io.FileIO(f'{args.output_model_path}/{MODEL_FILE}', mode='wb+') as output_f:
     output_f.write(input_f.read())
 
 # write out metrics

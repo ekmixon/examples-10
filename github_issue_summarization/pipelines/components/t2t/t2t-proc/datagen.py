@@ -30,7 +30,7 @@ def copy_local_directory_to_gcs(project, local_path, bucket_name, gcs_path):
   local_path should be a directory and not have a trailing slash.
   """
   assert os.path.isdir(local_path)
-  for local_file in glob.glob(local_path + '/**'):
+  for local_file in glob.glob(f'{local_path}/**'):
     if not os.path.isfile(local_file):
       continue
     remote_path = os.path.join(gcs_path, local_file[1 + len(local_path) :])
@@ -40,14 +40,12 @@ def copy_local_directory_to_gcs(project, local_path, bucket_name, gcs_path):
     blob.upload_from_filename(local_file)
 
 def download_blob(bucket_name, source_blob_name, destination_file_name):
-    """Downloads a blob from the bucket."""
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(bucket_name)
-    blob = bucket.blob(source_blob_name)
-    blob.download_to_filename(destination_file_name)
-    print("Blob {} downloaded to {}.".format(
-            source_blob_name, destination_file_name)
-    )
+  """Downloads a blob from the bucket."""
+  storage_client = storage.Client()
+  bucket = storage_client.bucket(bucket_name)
+  blob = bucket.blob(source_blob_name)
+  blob.download_to_filename(destination_file_name)
+  print(f"Blob {source_blob_name} downloaded to {destination_file_name}.")
 
 def main():
   parser = argparse.ArgumentParser(description='ML Trainer')
@@ -70,19 +68,25 @@ def main():
   download_blob('aju-dev-demos-codelabs', 'kubecon/gh_data/github_issues.csv',
       local_source_data_file)
 
-  datagen_command = ['t2t-datagen', '--data_dir', local_data_dir, '--t2t_usr_dir',
+  datagen_command = [
+      't2t-datagen',
+      '--data_dir',
+      local_data_dir,
+      '--t2t_usr_dir',
       '/ml/ghsumm/trainer',
-      '--problem', problem,
-      '--tmp_dir', local_data_dir + '/tmp'
-      ]
+      '--problem',
+      problem,
+      '--tmp_dir',
+      f'{local_data_dir}/tmp',
+  ]
   print(datagen_command)
   result1 = subprocess.call(datagen_command)
   print(result1)
 
-  print("copying processed input to %s" % remote_data_dir)
+  print(f"copying processed input to {remote_data_dir}")
   o = urlparse(remote_data_dir)
   path = re.sub('^/', '', o.path)
-  print("using bucket: %s and path: %s" % (o.netloc, path))
+  print(f"using bucket: {o.netloc} and path: {path}")
   copy_local_directory_to_gcs(args.project, local_data_dir, o.netloc, path)
 
 

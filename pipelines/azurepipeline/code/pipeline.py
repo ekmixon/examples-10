@@ -24,27 +24,32 @@ def tacosandburritos_train(
   learning_rate = 0.0001
   model_name = 'tacosandburritos'
   profile_name = 'tacoprofile'
-  operations = {}
   image_size = 160
   training_folder = 'train'
   training_dataset = 'train.txt'
   model_folder = 'model'
 
-  # preprocess data
-  operations['preprocess'] = dsl.ContainerOp(
-    name='preprocess',
-    image='insert image name:tag',
-    command=['python'],
-    arguments=[
-      '/scripts/data.py',
-      '--base_path', persistent_volume_path,
-      '--data', training_folder,
-      '--target', training_dataset,
-      '--img_size', image_size,
-      '--zipfile', data_download
-    ]
-  )
-
+  operations = {
+      'preprocess':
+      dsl.ContainerOp(
+          name='preprocess',
+          image='insert image name:tag',
+          command=['python'],
+          arguments=[
+              '/scripts/data.py',
+              '--base_path',
+              persistent_volume_path,
+              '--data',
+              training_folder,
+              '--target',
+              training_dataset,
+              '--img_size',
+              image_size,
+              '--zipfile',
+              data_download,
+          ],
+      )
+  }
   # train
   operations['training'] = dsl.ContainerOp(
     name='training',
@@ -116,4 +121,4 @@ def tacosandburritos_train(
       mount_path='/mnt/azure', name='azure'))
 
 if __name__ == '__main__':
-  compiler.Compiler().compile(tacosandburritos_train, __file__ + '.tar.gz')
+  compiler.Compiler().compile(tacosandburritos_train, f'{__file__}.tar.gz')

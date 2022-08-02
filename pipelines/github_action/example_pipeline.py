@@ -57,13 +57,13 @@ def flipcoin_pipeline():
   with dsl.Condition(flip.output == 'heads'):
     random_num_head = random_num_op(0, 9)
     with dsl.Condition(random_num_head.output > 5):
-      print_op('heads and %s > 5!' % random_num_head.output)
+      print_op(f'heads and {random_num_head.output} > 5!')
     with dsl.Condition(random_num_head.output <= 5):
-      print_op('heads and %s <= 5!' % random_num_head.output)
+      print_op(f'heads and {random_num_head.output} <= 5!')
 
   with dsl.Condition(flip.output == 'tails'):
     random_num_tail = random_num_op(10, 19)
     with dsl.Condition(random_num_tail.output > 15):
-      print_op('tails and %s > 15!' % random_num_tail.output)
+      print_op(f'tails and {random_num_tail.output} > 15!')
     with dsl.Condition(random_num_tail.output <= 15):
-      print_op('tails and %s <= 15!' % random_num_tail.output)
+      print_op(f'tails and {random_num_tail.output} <= 15!')

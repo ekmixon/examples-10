@@ -22,22 +22,23 @@ def dataflow_function_embedding_op(
         workflow_id: str,
         working_dir: str,):
   return dsl.ContainerOp(
-    name='dataflow_function_embedding',
-    image='gcr.io/kubeflow-examples/code-search/ks:v20181210-d7487dd-dirty-eb371e',
-    command=['/usr/local/src/submit_code_embeddings_job.sh'],
-    arguments=[
-      "--cluster=%s" % cluster_name,
-      "--dataDir=%s" % 'gs://code-search-demo/20181104/data',
-      "--functionEmbeddingsDir=%s" % function_embeddings_dir,
-      "--functionEmbeddingsBQTable=%s" % function_embeddings_bq_table,
-      "--modelDir=%s" % saved_model_dir,
-      "--namespace=%s" % namespace,
-      "--numWorkers=%s" % num_workers,
-      "--project=%s" % project,
-      "--workerMachineType=%s" % worker_machine_type,
-      "--workflowId=%s" % workflow_id,
-      "--workingDir=%s" % working_dir,
-    ]
+      name='dataflow_function_embedding',
+      image=
+      'gcr.io/kubeflow-examples/code-search/ks:v20181210-d7487dd-dirty-eb371e',
+      command=['/usr/local/src/submit_code_embeddings_job.sh'],
+      arguments=[
+          f"--cluster={cluster_name}",
+          '--dataDir=gs://code-search-demo/20181104/data',
+          f"--functionEmbeddingsDir={function_embeddings_dir}",
+          f"--functionEmbeddingsBQTable={function_embeddings_bq_table}",
+          f"--modelDir={saved_model_dir}",
+          f"--namespace={namespace}",
+          f"--numWorkers={num_workers}",
+          f"--project={project}",
+          f"--workerMachineType={worker_machine_type}",
+          f"--workflowId={workflow_id}",
+          f"--workingDir={working_dir}",
+      ],
   ).apply(gcp.use_gcp_secret('user-gcp-sa'))
 
 
@@ -50,18 +51,18 @@ def search_index_creator_op(
         namespace: str,
         workflow_id: str):
   return dsl.ContainerOp(
-    # use component name as step name
-    name='search_index_creator',
-    image='gcr.io/kubeflow-examples/code-search/ks:v20181210-d7487dd-dirty-eb371e',
-    command=['/usr/local/src/launch_search_index_creator_job.sh'],
-    arguments=[
-      '--cluster=%s' % cluster_name,
-      '--functionEmbeddingsDir=%s' % function_embeddings_dir,
-      '--indexFile=%s' % index_file,
-      '--lookupFile=%s' % lookup_file,
-      '--namespace=%s' % namespace,
-      '--workflowId=%s' % workflow_id,
-    ]
+      name='search_index_creator',
+      image=
+      'gcr.io/kubeflow-examples/code-search/ks:v20181210-d7487dd-dirty-eb371e',
+      command=['/usr/local/src/launch_search_index_creator_job.sh'],
+      arguments=[
+          f'--cluster={cluster_name}',
+          f'--functionEmbeddingsDir={function_embeddings_dir}',
+          f'--indexFile={index_file}',
+          f'--lookupFile={lookup_file}',
+          f'--namespace={namespace}',
+          f'--workflowId={workflow_id}',
+      ],
   )
 
 
@@ -74,42 +75,35 @@ def update_index_op(
         index_file: str,
         lookup_file: str,
         workflow_id: str):
-  return (
-    dsl.ContainerOp(
+  return (dsl.ContainerOp(
       name='update_index',
-      image='gcr.io/kubeflow-examples/code-search/ks:v20181210-d7487dd-dirty-eb371e',
+      image=
+      'gcr.io/kubeflow-examples/code-search/ks:v20181210-d7487dd-dirty-eb371e',
       command=['/usr/local/src/update_index.sh'],
       arguments=[
-        '--appDir=%s' % app_dir,
-        '--baseBranch=%s' % base_branch,
-        '--baseGitRepo=%s' % base_git_repo,
-        '--botEmail=%s' % bot_email,
-        '--forkGitRepo=%s' % fork_git_repo,
-        '--indexFile=%s' % index_file,
-        '--lookupFile=%s' % lookup_file,
-        '--workflowId=%s' % workflow_id,
+          f'--appDir={app_dir}',
+          f'--baseBranch={base_branch}',
+          f'--baseGitRepo={base_git_repo}',
+          f'--botEmail={bot_email}',
+          f'--forkGitRepo={fork_git_repo}',
+          f'--indexFile={index_file}',
+          f'--lookupFile={lookup_file}',
+          f'--workflowId={workflow_id}',
       ],
-    )
-    .add_volume(
+  ).add_volume(
       k8s_client.V1Volume(
-        name='github-access-token',
-        secret=k8s_client.V1SecretVolumeSource(
-          secret_name='github-access-token'
-        )
-      )
-    )
-    .add_env_variable(
-      k8s_client.V1EnvVar(
-        name='GITHUB_TOKEN',
-        value_from=k8s_client.V1EnvVarSource(
-          secret_key_ref=k8s_client.V1SecretKeySelector(
-            name='github-access-token',
-            key='token',
-          )
-        )
-      )
-    )
-  )
+          name='github-access-token',
+          secret=k8s_client.V1SecretVolumeSource(
+              secret_name='github-access-token'),
+      )).add_env_variable(
+          k8s_client.V1EnvVar(
+              name='GITHUB_TOKEN',
+              value_from=k8s_client.V1EnvVarSource(
+                  secret_key_ref=k8s_client.V1SecretKeySelector(
+                      name='github-access-token',
+                      key='token',
+                  )),
+          )))
 
 
 # The pipeline definition
@@ -137,12 +131,12 @@ def github_code_index_update(
     # For recurrent pipeline, pass in '[[Index]]' instead, for unique naming.
     bq_suffix=uuid.uuid4().hex[:6].upper()):
   workflow_name = '{{workflow.name}}'
-  working_dir = '%s/%s' % (working_dir, workflow_name)
-  lookup_file = '%s/code-embeddings-index/embedding-to-info.csv' % working_dir
-  index_file = '%s/code-embeddings-index/embeddings.index'% working_dir
-  function_embeddings_dir = '%s/%s' % (working_dir, "code_embeddings")
-  function_embeddings_bq_table = \
-    '%s:%s.function_embeddings_%s' % (project, target_dataset, bq_suffix)
+  working_dir = f'{working_dir}/{workflow_name}'
+  lookup_file = f'{working_dir}/code-embeddings-index/embedding-to-info.csv'
+  index_file = f'{working_dir}/code-embeddings-index/embeddings.index'
+  function_embeddings_dir = f'{working_dir}/code_embeddings'
+  function_embeddings_bq_table = (
+      f'{project}:{target_dataset}.function_embeddings_{bq_suffix}')
 
   function_embedding = dataflow_function_embedding_op(
     cluster_name,
@@ -179,4 +173,4 @@ def github_code_index_update(
 if __name__ == '__main__':
   import kfp.compiler as compiler
 
-  compiler.Compiler().compile(github_code_index_update, __file__ + '.tar.gz')
+  compiler.Compiler().compile(github_code_index_update, f'{__file__}.tar.gz')

@@ -29,8 +29,7 @@ def load_image_into_numpy_array(input_image):
 def load_input_tensor(input_image):
     image_np = load_image_into_numpy_array(input_image)
     image_np_expanded = np.expand_dims(image_np, axis=0).astype(np.uint8)
-    tensor = tf.contrib.util.make_tensor_proto(image_np_expanded)
-    return tensor
+    return tf.contrib.util.make_tensor_proto(image_np_expanded)
 
 def main(args):
     host, port = args.server.split(':')
@@ -45,9 +44,12 @@ def main(args):
     result = stub.Predict(request, 60.0)
     image_np = load_image_into_numpy_array(args.input_image)
 
-    output_dict = {}
-    output_dict[dt_fields.detection_classes] = np.squeeze(
-        result.outputs[dt_fields.detection_classes].float_val).astype(np.uint8)
+    output_dict = {
+        dt_fields.detection_classes: np.squeeze(
+            result.outputs[dt_fields.detection_classes].float_val
+        ).astype(np.uint8)
+    }
+
     output_dict[dt_fields.detection_boxes] = np.reshape(
         result.outputs[dt_fields.detection_boxes].float_val, (-1, 4))
     output_dict[dt_fields.detection_scores] = np.squeeze(
@@ -66,8 +68,11 @@ def main(args):
       line_thickness=8)
     output_img = Image.fromarray(image_np.astype(np.uint8))
     base_filename = os.path.splitext(os.path.basename(args.input_image))[0]
-    output_image_path = os.path.join(args.output_directory, base_filename + "_output.jpg")
-    tf.logging.info('Saving labeled image: %s' % output_image_path)
+    output_image_path = os.path.join(
+        args.output_directory, f"{base_filename}_output.jpg"
+    )
+
+    tf.logging.info(f'Saving labeled image: {output_image_path}')
     output_img.save(output_image_path)
 
 if __name__ == '__main__':

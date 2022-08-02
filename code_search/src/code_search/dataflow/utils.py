@@ -11,9 +11,7 @@ en = spacy.load('en')
 # In python2 we need to call decode but in python3 strings
 # are always unicode.
 def _maybe_decode(s):
-  if sys.version_info[0] < 3:
-    return s.decode("utf-8")
-  return s
+  return s.decode("utf-8") if sys.version_info[0] < 3 else s
 
 def tokenize_docstring(text):
   """Tokenize docstrings.
@@ -74,7 +72,7 @@ def get_function_docstring_pairs(blob):
 
     for f in functions:
       source = astor.to_source(f)
-      docstring = ast.get_docstring(f) if ast.get_docstring(f) else ''
+      docstring = ast.get_docstring(f) or ''
       func = source.replace(ast.get_docstring(f, clean=False), '') if docstring else source
 
       docstring_tokens = tokenize_docstring(docstring.split('\n\n')[0])
@@ -86,7 +84,6 @@ def get_function_docstring_pairs(blob):
         _maybe_decode(' '.join(docstring_tokens)),
       )
       pairs.append(pair_tuple)
-  # TODO(jlewi): Can we be more selective in swallowing errors?
   except (AssertionError, MemoryError, SyntaxError,
           UnicodeEncodeError) as e:
     logging.error("Exception occurred parsing code: %s", e)

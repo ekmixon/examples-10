@@ -37,7 +37,7 @@ def copy_blob(storage_client, source_bucket, source_blob, target_bucket_name, ne
 
   target_bucket = storage_client.get_bucket(target_bucket_name)
   new_blob_name_trimmed = new_blob_name.replace(prefix, '')
-  new_blob_full_name = new_blob_prefix + '/'+ new_blob_name_trimmed
+  new_blob_full_name = f'{new_blob_prefix}/{new_blob_name_trimmed}'
 
   new_blob = source_bucket.copy_blob(
       source_blob, target_bucket, new_blob_full_name)
@@ -55,13 +55,13 @@ def copy_checkpoint(checkpoint_dir, model_dir):
   retries = 10
 
   source_bucket_string = urlparse(checkpoint_dir).netloc
-  source_prefix = checkpoint_dir.replace('gs://' + source_bucket_string + '/', '')
+  source_prefix = checkpoint_dir.replace(f'gs://{source_bucket_string}/', '')
   logging.info("source bucket %s and prefix %s", source_bucket_string, source_prefix)
   source_bucket = storage_client.bucket(source_bucket_string)
 
   target_bucket = urlparse(model_dir).netloc
   logging.info("target bucket: %s", target_bucket)
-  new_blob_prefix = model_dir.replace('gs://' + target_bucket + '/', '')
+  new_blob_prefix = model_dir.replace(f'gs://{target_bucket}/', '')
   logging.info("new_blob_prefix: %s", new_blob_prefix)
 
   # Lists objects with the given prefix.
@@ -88,7 +88,7 @@ def run_training(args, data_dir, model_dir, problem):
   if not args.train_steps:
     logging.error("Number of training steps not set.")
     return
-  print('training steps (total): %s' % args.train_steps)
+  print(f'training steps (total): {args.train_steps}')
 
   # Run the training for N steps.
   model_train_command = ['t2t-trainer', '--data_dir', data_dir,
@@ -111,7 +111,7 @@ def run_training(args, data_dir, model_dir, problem):
   result3 = subprocess.call(model_export_command)  # pylint: disable=unused-variable
   # print(result3)
 
-  print("deploy-webapp arg: %s" % args.deploy_webapp)
+  print(f"deploy-webapp arg: {args.deploy_webapp}")
   with open(OUTPUT_PATH, 'w') as f:
     f.write(args.deploy_webapp)
 
@@ -173,7 +173,7 @@ def main():
     # write the model export path as an output param
     logging.info("train_output_path: %s", args.train_output_path)
     pathlib2.Path(args.train_output_path).parent.mkdir(parents=True)
-    export_dir = '%s/export' % model_dir
+    export_dir = f'{model_dir}/export'
     pathlib2.Path(args.train_output_path).write_text(export_dir.decode('utf-8'))
     # Create metadata.json file for Tensorboard 'artifact'
     metadata = {

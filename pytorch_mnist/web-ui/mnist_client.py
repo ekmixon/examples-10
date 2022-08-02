@@ -52,7 +52,7 @@ def get_prediction(image, server_host='127.0.0.1', server_port=8080,
     # retrieve results
     request = prediction_pb2.SeldonMessage(data=datadef)
     logging.info("connecting to:%s:%i", server_host, server_port)
-    channel = grpc.insecure_channel(server_host + ":" + str(server_port))
+    channel = grpc.insecure_channel(f"{server_host}:{str(server_port)}")
     stub = prediction_pb2_grpc.SeldonStub(channel)
     metadata = [('seldon', deployment_name)]
     response = stub.Predict(request=request, metadata=metadata)

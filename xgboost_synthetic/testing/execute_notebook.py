@@ -37,9 +37,9 @@ def run_notebook_test(notebook_path, expected_messages, parameters=None):
   kf_util.upload_to_gcs(html_output, gcs_path)
 
   for expected_message in expected_messages:
-    if not expected_message in actual_output:
+    if expected_message not in actual_output:
       logger.error(actual_output)
-      assert False, "Unable to find from output: " + expected_message
+      assert False, f"Unable to find from output: {expected_message}"
 
 if __name__ == "__main__":
   prepare_env()

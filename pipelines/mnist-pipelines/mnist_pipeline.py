@@ -100,4 +100,4 @@ def mnist_pipeline(model_export_dir='gs://your-bucket/export',
 
 if __name__ == '__main__':
   import kfp.compiler as compiler
-  compiler.Compiler().compile(mnist_pipeline, __file__ + '.tar.gz')
+  compiler.Compiler().compile(mnist_pipeline, f'{__file__}.tar.gz')

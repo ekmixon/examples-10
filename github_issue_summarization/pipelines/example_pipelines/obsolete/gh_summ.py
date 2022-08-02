@@ -53,11 +53,11 @@ def gh_summ(  #pylint: disable=unused-argument
 
 
   copydata = copydata_op(
-    data_dir=data_dir,
-    checkpoint_dir=checkpoint_dir,
-    model_dir='%s/%s/model_output' % (working_dir, dsl.RUN_ID_PLACEHOLDER),
-    action=COPY_ACTION,
-    ).apply(gcp.use_gcp_secret('user-gcp-sa'))
+      data_dir=data_dir,
+      checkpoint_dir=checkpoint_dir,
+      model_dir=f'{working_dir}/{dsl.RUN_ID_PLACEHOLDER}/model_output',
+      action=COPY_ACTION,
+  ).apply(gcp.use_gcp_secret('user-gcp-sa'))
 
 
   log_dataset = metadata_log_op(
@@ -85,10 +85,13 @@ def gh_summ(  #pylint: disable=unused-argument
   serve = dsl.ContainerOp(
       name='serve',
       image='gcr.io/google-samples/ml-pipeline-kubeflow-tfserve:v2',
-      arguments=["--model_name", 'ghsumm-%s' % (dsl.RUN_ID_PLACEHOLDER,),
-          "--model_path", train.outputs['train_output_path']
-          ]
-      ).apply(gcp.use_gcp_secret('user-gcp-sa'))
+      arguments=[
+          "--model_name",
+          f'ghsumm-{dsl.RUN_ID_PLACEHOLDER}',
+          "--model_path",
+          train.outputs['train_output_path'],
+      ],
+  ).apply(gcp.use_gcp_secret('user-gcp-sa'))
 
   log_dataset.after(copydata)
   log_model.after(train)
@@ -99,13 +102,16 @@ def gh_summ(  #pylint: disable=unused-argument
     webapp = dsl.ContainerOp(
         name='webapp',
         image='gcr.io/google-samples/ml-pipeline-webapp-launcher:v3ap',
-        arguments=["--model_name", 'ghsumm-%s' % (dsl.RUN_ID_PLACEHOLDER,),
-            "--github_token", github_token]
-
-        )
+        arguments=[
+            "--model_name",
+            f'ghsumm-{dsl.RUN_ID_PLACEHOLDER}',
+            "--github_token",
+            github_token,
+        ],
+    )
     webapp.after(serve)
 
 
 if __name__ == '__main__':
   import kfp.compiler as compiler
-  compiler.Compiler().compile(gh_summ, __file__ + '.tar.gz')
+  compiler.Compiler().compile(gh_summ, f'{__file__}.tar.gz')

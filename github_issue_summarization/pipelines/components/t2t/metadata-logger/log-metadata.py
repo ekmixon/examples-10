@@ -34,9 +34,9 @@ def get_or_create_workspace(ws_name):
 
 def get_or_create_workspace_run(md_workspace, run_name):
   return metadata.Run(
-    workspace=md_workspace,
-    name=run_name,
-    description="Metadata run for workflow %s" % run_name,
+      workspace=md_workspace,
+      name=run_name,
+      description=f"Metadata run for workflow {run_name}",
   )
 
 @retrying.retry(stop_max_delay=180000)

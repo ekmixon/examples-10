@@ -78,6 +78,4 @@ class YelpSentiment(imdb.SentimentIMDB):
 
 @registry.register_hparams
 def transformer_yelp_sentiment():
-  # https://github.com/tensorflow/tensor2tensor/blob/99750c4b6858de46b75b067e3a967fe74da1c874/tensor2tensor/models/transformer.py#L1040
-  hparams = transformer.transformer_base_single_gpu()
-  return hparams
+  return transformer.transformer_base_single_gpu()

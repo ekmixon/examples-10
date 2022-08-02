@@ -35,12 +35,12 @@ def GenerateConfig(context):
             'dependsOn': depends_on
         },
         'properties': {
-            'consumerId': 'project:' + project_id,
-            'serviceName': api
-        }
+            'consumerId': f'project:{project_id}',
+            'serviceName': api,
+        },
     })
   return {'resources': resources}
 
 
 def ApiResourceName(project_id, api_name):
-  return project_id + '-' + api_name
+  return f'{project_id}-{api_name}'

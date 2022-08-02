@@ -17,8 +17,7 @@ def upload_to_storage(bucket, export_path):
 
   """
   client = storage.Client()
-  bucket = client.get_bucket(bucket)
-  if bucket:
+  if bucket := client.get_bucket(bucket):
     for root, _, files in os.walk(export_path):
       for file in files:
         path = os.path.join(root, file)
@@ -34,9 +33,7 @@ def download_blob(bucket_name, source_blob_name, destination_file_name):
 
   blob.download_to_filename(destination_file_name)
 
-  print('Blob {} downloaded to {}.'.format(
-    source_blob_name,
-    destination_file_name))
+  print(f'Blob {source_blob_name} downloaded to {destination_file_name}.')
 
 
 def list_blobs(bucket_name, prefix, delimiter=None):

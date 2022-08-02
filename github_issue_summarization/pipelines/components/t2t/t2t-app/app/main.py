@@ -49,9 +49,9 @@ data_dir = os.getenv('DATADIR', 'gs://aju-dev-demos-codelabs/kubecon/t2t_data_gh
 github_token = os.getenv('GH_TOKEN', 'xxx')
 
 SERVER = os.getenv('TFSERVING_HOST', 'ghsumm.kubeflow')
-print("using server: %s" % SERVER)
+print(f"using server: {SERVER}")
 SERVABLE_NAME = os.getenv('TF_SERVABLE_NAME', 'ghsumm')
-print("using model servable name: %s" % SERVABLE_NAME)
+print(f"using model servable name: {SERVABLE_NAME}")
 
 SAMPLE_ISSUES = './github_issues_sample.csv'
 
@@ -63,9 +63,9 @@ def get_issue_body(issue_url):
   tf.logging.info("issue url: %s", issue_url)
   # tf.logging.info("using GH token: %s", github_token)
   response = requests.get(
-    issue_url, headers={
-      'Authorization': 'token {}'.format(github_token)
-    }).json()
+      issue_url, headers={
+          'Authorization': f'token {github_token}'
+      }).json()
   tf.logging.info("----response from url fetch: %s", response)
   return response['body']
 
@@ -100,8 +100,7 @@ def summary():
 
   if request.method == 'POST':
     issue_text = request.form["issue_text"]
-    issue_url = request.form["issue_url"]
-    if issue_url:
+    if issue_url := request.form["issue_url"]:
       print("fetching issue from URL...")
       issue_text = get_issue_body(issue_url)
     tf.logging.info("issue_text: %s", issue_text)
@@ -119,7 +118,7 @@ def init():
   # global input_encoder, output_decoder, fname, problem
   global problem  #pylint: disable=global-statement
   tf.logging.set_verbosity(tf.logging.INFO)
-  tf.logging.info("importing ghsumm/trainer from {}".format(t2t_usr_dir))
+  tf.logging.info(f"importing ghsumm/trainer from {t2t_usr_dir}")
   usr_dir.import_usr_dir(t2t_usr_dir)
   print(t2t_usr_dir)
   problem = registry.problem(problem_name)

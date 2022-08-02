@@ -26,5 +26,4 @@ def predict_nparray(url, data, feature_names=None):
       }
   }
   serialized_data = json.dumps(pdata)
-  r = requests.post(url, data={'json':serialized_data}, timeout=5)
-  return r
+  return requests.post(url, data={'json':serialized_data}, timeout=5)

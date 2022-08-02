@@ -70,18 +70,11 @@ def classify_files(root_dir):
   Returns:
     categories: Dictionary mapping a category to list of files.
   """
-  categories = {}
-  for k in MATCH_RES.iterkeys():
-    categories[k] = Results()
-
+  categories = {k: Results() for k in MATCH_RES.iterkeys()}
   for root, _, files in os.walk(root_dir):
     for name in files:
       full_path = os.path.join(root, name)
-      exclude = False
-      for m in NAME_EXCLUDES:
-        if m.match(name):
-          exclude = True
-          break
+      exclude = any(m.match(name) for m in NAME_EXCLUDES)
       if exclude:
         continue
       for k, patterns in MATCH_RES.iteritems():

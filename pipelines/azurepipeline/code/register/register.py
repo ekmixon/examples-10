@@ -28,14 +28,13 @@ def get_ws(tenant_id, service_principal_id,
         'subscription_id': subscription_id,
         'resource_group': resource_group
     }
-    ws = Workspace.get(workspace, **ws_args)
-    return ws
+    return Workspace.get(workspace, **ws_args)
 
 
 def run(mdl_path, model_name, ws, tgs):
     print(ws.get_details())
 
-    print('\nSaving model {} to {}'.format(mdl_path, model_name))
+    print(f'\nSaving model {mdl_path} to {model_name}')
 
     # Model Path needs to be relative
     mdl_path = relpath(mdl_path, '.')
@@ -63,7 +62,7 @@ if __name__ == "__main__":
     parser.add_argument('-w', '--workspace', help='workspace')
     args = parser.parse_args()
 
-    print('Azure ML SDK Version: {}'.format(azureml.core.VERSION))
+    print(f'Azure ML SDK Version: {azureml.core.VERSION}')
     args.model = 'model/' + args.model
     model_path = str(Path(args.base_path).resolve(
         strict=False).joinpath(args.model).resolve(strict=False))
@@ -85,14 +84,14 @@ if __name__ == "__main__":
     # printing out args for posterity
     for i in wsrgs:
         if i == 'service_principal_password':
-            print('{} => **********'.format(i))
+            print(f'{i} => **********')
         else:
-            print('{} => {}'.format(i, wsrgs[i]))
+            print(f'{i} => {wsrgs[i]}')
 
     for i in rgs:
         print('{} => {}'.format(i, rgs[i]))
 
-    with(open(str(params_path), 'r')) as f:
+    with open(params_path, 'r') as f:
         tags = json.load(f)
 
     print('\n\nUsing the following tags:')

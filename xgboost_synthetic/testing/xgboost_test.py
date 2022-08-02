@@ -34,10 +34,10 @@ def test_xgboost_synthetic(record_xml_attribute, name, namespace, # pylint: disa
   repos += ",kubeflow/testing@HEAD"
   logging.info("Repos set to %s", repos)
   job["spec"]["template"]["spec"]["initContainers"][0]["command"] = [
-    "/usr/local/bin/checkout_repos.sh",
-    "--repos=" + repos,
-    "--src_dir=/src",
-    "--depth=all",
+      "/usr/local/bin/checkout_repos.sh",
+      f"--repos={repos}",
+      "--src_dir=/src",
+      "--depth=all",
   ]
 
   nb_bucket = "kubeflow-ci-deployment"
@@ -59,9 +59,9 @@ def test_xgboost_synthetic(record_xml_attribute, name, namespace, # pylint: disa
   if name:
     job["metadata"]["name"] = name
   else:
-    job["metadata"]["name"] = ("xgboost-test-" +
-                               datetime.datetime.now().strftime("%H%M%S")
-                               + "-" + uuid.uuid4().hex[0:3])
+    job["metadata"]["name"] = (
+        "xgboost-test-" + datetime.datetime.now().strftime("%H%M%S") + "-" +
+        uuid.uuid4().hex[:3])
     name = job["metadata"]["name"]
 
   job["metadata"]["namespace"] = namespace

@@ -12,18 +12,13 @@ from azureml.core.model import Model
 
 def init():
     global model
-    if Model.get_model_path('tacosandburritos'):
-        model_path = Model.get_model_path('tacosandburritos')
-    else:
-        model_path = '/model/latest.h5'
-
+    model_path = Model.get_model_path('tacosandburritos') or '/model/latest.h5'
     print('Attempting to load model')
     model = tf.keras.models.load_model(model_path)
     model.summary()
     print('Done!')
 
-    print('Initialized model "{}" at {}'.format(
-        model_path, datetime.datetime.now()))
+    print(f'Initialized model "{model_path}" at {datetime.datetime.now()}')
 
 
 def run(raw_data):
@@ -46,7 +41,7 @@ def run(raw_data):
         'scores': str(o)
     }
 
-    print('Input ({}), Prediction ({})'.format(post['image'], payload))
+    print(f"Input ({post['image']}), Prediction ({payload})")
 
     return payload
 
@@ -60,9 +55,7 @@ def process_image(path, image_size):
         img = np.array(Image.open(path))
 
     img_tensor = tf.convert_to_tensor(img, dtype=tf.float32)
-    # tf.image.decode_jpeg(img_raw, channels=3)
-    img_final = tf.image.resize(img_tensor, [image_size, image_size]) / 255
-    return img_final
+    return tf.image.resize(img_tensor, [image_size, image_size]) / 255
 
 
 def info(msg, char="#", width=75):
@@ -81,7 +74,7 @@ if __name__ == "__main__":
     init()
 
     for k, v in images.items():
-        print('{} => {}'.format(k, v))
+        print(f'{k} => {v}')
 
     info('Taco Test')
     taco = json.dumps({'image': images['tacos']})
